@@ -25,7 +25,7 @@ namespace glshader::preprocessor
     namespace macro = impl::macro;
     namespace ext = impl::ext;
     namespace lgl = impl::load_gl;
-
+    
     void process_impl(const files::path& file_path, const std::vector<files::path>& include_directories,
         processed_file& processed, std::set<files::path>& unique_includes,
         std::stringstream& result)
@@ -39,7 +39,7 @@ namespace glshader::preprocessor
         const char* text_ptr = contents.data();
 
         files::path current_file = file_path;
-        processed.definitions["__FILE__"] = { {}, current_file.string() };
+        processed.definitions["__FILE__"] = current_file.string();
         int current_line = 1;
         std::string curr = current_file.filename().string();
         std::replace(curr.begin(), curr.end(), '\\', '/');
@@ -82,30 +82,30 @@ namespace glshader::preprocessor
                         (*(text_ptr + 1) - '0') * 10 +
                         (*(text_ptr + 2) - '0');
 
-                    processed.definitions["__VERSION__"] = { {}, {text_ptr, text_ptr + 3} };
+                    processed.definitions["__VERSION__"] = std::string{text_ptr, text_ptr + 3};
 
                     result << "#version " << *text_ptr << *(text_ptr + 1) << *(text_ptr + 2) << " ";
                     text_ptr = skip::to_next_token(text_ptr);
 
                     if (cls::is_newline(text_ptr))
                     {
-                        processed.definitions["GL_core_profile"] = { {}, "1" };
+                        processed.definitions["GL_core_profile"] = 1;
                         processed.profile = shader_profile::core;
                     }
                     else if (cls::is_token_equal(text_ptr, "core", 4))
                     {
-                        processed.definitions["GL_core_profile"] = { {}, "1" };
+                        processed.definitions["GL_core_profile"] = 1;
                         processed.profile = shader_profile::core;
                     }
                     else if (cls::is_token_equal(text_ptr, "compatibility", 13))
                     {
-                        processed.definitions["GL_compatibility_profile"] = { {}, "1" };
+                        processed.definitions["GL_compatibility_profile"] = 1;
                         processed.profile = shader_profile::compat;
                     }
                     else
                     {
                         syntax_error(current_file, current_line, "Unrecognized profile: " + std::string(text_ptr, skip::to_endline(text_ptr)) + ". Using core.");
-                        processed.definitions["GL_core_profile"] = { {}, "1" };
+                        processed.definitions["GL_core_profile"] = 1;
                         processed.profile = shader_profile::core;
                     }
 
@@ -129,21 +129,22 @@ namespace glshader::preprocessor
                     if (cls::is_token_equal(text_ptr, "require", 7))
                     {
                         processed.extensions[extension] = true;
-                        processed.definitions[extension] ={ {}, {std::to_string(1)} };
+                        processed.definitions[extension] = 1;
                     }
                     else if (cls::is_token_equal(text_ptr, "enable", 6))
                     {
                         processed.extensions[extension] = false;
                         if(ext::extension_available(extension))
-                            processed.definitions[extension] = { {},{ std::to_string(1) } };
+                            processed.definitions[extension] = 1;
                     }
                     else
                     {
                         syntax_error(current_file, current_line,
-                            "Unrecognized extension requirement: " + std::string(
-                                text_ptr, skip::to_endline(text_ptr)) + ". Has to be \"require\" or \"enable\". Using \"enable\"...");
+                            "Unrecognized extension requirement: " + 
+                            std::string(text_ptr, skip::to_endline(text_ptr)) + 
+                            ". Has to be \"require\" or \"enable\". Using \"enable\"...");
                         processed.extensions[extension] = false;
-                        processed.definitions[extension] ={ {},{ std::to_string(1) } };
+                        processed.definitions[extension] = 1;
                     }
 
                     while (!cls::is_newline(text_ptr))
@@ -189,7 +190,7 @@ namespace glshader::preprocessor
                             ++value_end;
                         }
 
-                        processed.definitions[{name_begin, text_ptr}] = definition_info{ val.str() };
+                        processed.definitions[{name_begin, text_ptr}] = val.str();
 
                         text_ptr = value_end;
                     }
@@ -242,8 +243,7 @@ namespace glshader::preprocessor
                                 param_stream.ignore();
                         }
 
-                        processed.definitions[{name_begin, name_end}] =
-                        { std::move(parameters), definition_stream.str() };
+                        processed.definitions[{name_begin, name_end}] = { std::move(parameters), definition_stream.str() };
 
                         text_ptr = value_end;
                     }
@@ -432,7 +432,7 @@ namespace glshader::preprocessor
                         if (const auto file_name_end = skip::to_next_space(text_ptr) - 1; *file_name_end == '\"')
                         {
                             current_file = files::path(std::string(text_ptr + 1, file_name_end));
-                            processed.definitions["__FILE__"] = { {}, current_file.string() };
+                            processed.definitions["__FILE__"] = current_file.string();
                             result << "\"" << current_file << "\"\n";
                         }
                         else
@@ -441,7 +441,7 @@ namespace glshader::preprocessor
                                 "Invalid line directive, did not find closing \".");
 
                             current_file = files::path(std::string(text_ptr + 1, file_name_end));
-                            processed.definitions["__FILE__"] = { {}, current_file.string() };
+                            processed.definitions["__FILE__"] = current_file.string();
                             result << "\"" << current_file << "\"\n";
                         }
                     }

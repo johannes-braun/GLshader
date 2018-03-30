@@ -10,6 +10,6 @@ namespace glshader::preprocessor::impl::control
 
     void increment_line(int& current_line, processed_file& processed)
     {
-        processed.definitions["__LINE__"] ={ {}, std::to_string(++current_line) };
+        processed.definitions["__LINE__"] = ++current_line;
     }
 }
