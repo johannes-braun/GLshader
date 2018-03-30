@@ -1,4 +1,4 @@
-#include <definition.hpp>
+#include <glsp/definition.hpp>
 
 namespace glshader
 {

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "files.hpp"
-#include <glsp.hpp>
+#include <glsp/glsp.hpp>
 
 namespace glshader::preprocessor::impl::macro
 {

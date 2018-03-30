@@ -1,5 +1,5 @@
-#include <glsp.hpp>
-#include <config.hpp>
+#include <glsp/glsp.hpp>
+#include <glsp/config.hpp>
 
 /* Impl */
 #include "preprocessor/eval.hpp"
