@@ -1,5 +1,4 @@
 # GLShader Preprocessor
-=======================
 
 This is my attempt to create a preprocessor for GLSL code in C++.
 
