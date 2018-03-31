@@ -68,7 +68,7 @@ namespace glshader::preprocessor::impl::macro
             for (int parameter = 0; parameter < static_cast<int>(info.parameters.size()); ++parameter)
             {
                 if (cls::is_token_equal(&info.replacement[replacement_offset], info.parameters[parameter].data(),
-                    static_cast<unsigned>(info.parameters[parameter].length() + 1),
+                    static_cast<unsigned>(info.parameters[parameter].length()),
                     replacement_offset != 0))
                 {
                     skip_stream = true;
@@ -76,7 +76,7 @@ namespace glshader::preprocessor::impl::macro
                     replacement_offset += static_cast<int>(info.parameters[parameter].length() - 1);
                     break;
                 }
-                if (cls::is_token_equal(&info.replacement[replacement_offset], "__VA_ARGS__", replacement_offset != 0) && info
+                if (cls::is_token_equal(&info.replacement[replacement_offset], "__VA_ARGS__", 11, replacement_offset != 0) && info
                     .parameters[parameter] == "...")
                 {
                     skip_stream = true;
