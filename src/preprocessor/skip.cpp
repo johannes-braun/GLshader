@@ -3,6 +3,7 @@
 #include "classify.hpp"
 #include "control.hpp"
 
+#include <cstring>
 #include <sstream>
 
 namespace glshader::preprocessor::impl::skip
@@ -50,14 +51,14 @@ namespace glshader::preprocessor::impl::skip
 
     const char* over_comments(const char* text_ptr, const files::path& file, int& line, processed_file& processed, std::stringstream& result)
     {
-        if (memcmp(text_ptr, "//", 2) == 0)
+        if (strncmp(text_ptr, "//", 2) == 0)
         {
             while (!classify::is_newline(text_ptr) && classify::is_eof(text_ptr))
                 ++text_ptr;
         }
-        else if (memcmp(text_ptr, "/*", 2) == 0)
+        else if (strncmp(text_ptr, "/*", 2) == 0)
         {
-            while (memcmp(text_ptr, "*/", 2) != 0)
+            while (strncmp(text_ptr, "*/", 2) != 0)
             {
                 if (classify::is_newline(text_ptr))
                     control::increment_line(line, processed);

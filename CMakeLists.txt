@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.9)
 project(GLShader)
 
 list(APPEND INCLUDES ${PROJECT_SOURCE_DIR}/include)
-list(APPEND LIBRARIES opengl32)
+
+if (WIN32)
+    list(APPEND LIBRARIES opengl32)
+elseif (UNIX)
+    list(APPEND LIBRARIES dl stdc++fs)
+endif()
+
 file(GLOB_RECURSE SRC_CPP "${PROJECT_SOURCE_DIR}/src/*.cpp")
 add_library(glsp ${SRC_CPP})
 target_link_libraries(glsp ${LIBRARIES})

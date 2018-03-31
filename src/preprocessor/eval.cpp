@@ -2,6 +2,9 @@
 
 #include "control.hpp"
 
+#include <cstring>
+#include <list>
+
 namespace glshader::preprocessor::impl::operation
 {
     enum eval_op
@@ -50,7 +53,7 @@ namespace glshader::preprocessor::impl::operation
     
     bool substreq(const char* x, const char* y, int len)
     {
-        return strncmp(x, y, len) == 0;
+        return std::strncmp(x, y, len) == 0;
     }
 
     int eval_operator(const char* begin, const eval_item& o, int len, const files::path& file, const int line);

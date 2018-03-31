@@ -95,8 +95,8 @@ namespace glshader::preprocessor::impl::load_gl
     glGetStringi_fun_t glGetStringi_fun;
     bool load_opengl()
     {
-        glGetIntegerv_fun   = static_cast<decltype(glGetIntegerv_fun)>(get_loader().get("glGetIntegerv"));
-        glGetStringi_fun    = static_cast<decltype(glGetStringi_fun)>(get_loader().get("glGetStringi"));
+        glGetIntegerv_fun   = reinterpret_cast<decltype(glGetIntegerv_fun)>(get_loader().get("glGetIntegerv"));
+        glGetStringi_fun    = reinterpret_cast<decltype(glGetStringi_fun)>(get_loader().get("glGetStringi"));
 
         return glGetIntegerv_fun && glGetStringi_fun;
     }

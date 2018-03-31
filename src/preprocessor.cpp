@@ -16,6 +16,7 @@
 #include <sstream>
 #include <stack>
 #include <cstring>
+#include <algorithm>
 
 namespace glshader::preprocessor
 {
