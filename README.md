@@ -3,6 +3,10 @@
 This is my attempt to create a preprocessor for GLSL code in C++.
 
 ## How to use?
+### Build libraries
+You can use cmake to build the binaries to later link against.
+Please use a recent compiler which supports c++17 and experimental::filesystem.
+
 ### Load file
 Include `<glsp/glsp.hpp>` and that's it.
 To load and process a file, you'd call `glsp::processed_file proc = glsp::preprocess_file("path/to/file.glsl", {}, {});`.
