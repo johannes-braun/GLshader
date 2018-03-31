@@ -9,7 +9,7 @@ namespace glshader::preprocessor::impl::skip
 {
     const char* space(const char* c)
     {
-        while (classify::is_space(c)) ++c;
+        while (classify::is_space(c) && !classify::is_eof(c)) ++c;
         return c;
     }
 

@@ -1,6 +1,9 @@
 #include <glsp/definition.hpp>
 
-namespace glshader
+#include "preprocessor/skip.hpp"
+#include "preprocessor/classify.hpp"
+
+namespace glshader::preprocessor
 {
     definition_info::definition_info(const char* value)
         : definition_info(std::string(value))
@@ -26,4 +29,46 @@ namespace glshader
     {
 
     }
+
+    definition definition::from_format(const std::string& str)
+    {
+        namespace skip = impl::skip;
+        namespace cls = impl::classify;
+
+        const char* begin = impl::skip::space(str.data());
+        const char* c = begin;
+        while (!cls::is_eof(c) && !cls::is_space(c) && *c != '(')
+            ++c;
+        const char* end_name = c;
+        c = skip::space(c);
+        if (cls::is_eof(c))
+            return { begin, end_name };
+        if (*c == '(')
+        {
+            definition_info info;
+            do
+            {
+                const char* begin_param = c=skip::space(++c);
+                while (!cls::is_eof(c) && !cls::is_space(c) && *c!=',' && *c != ')')
+                    ++c;
+                const char* end_param = c;
+
+                info.parameters.emplace_back(begin_param, end_param);
+
+                c = skip::space(c);
+            } while (!cls::is_eof(c) && *c != ')');
+            c = !cls::is_eof(c) ? skip::space(++c) : c;
+            info.replacement = std::string{ c, begin + str.size() };
+            return definition({ begin, end_name }, info);
+        }
+        else
+        {
+            return definition({ begin, end_name }, std::string{ c, begin + str.size() });
+        }
+    }
+}
+
+glshader::preprocessor::definition operator"" _gdef(const char* def, size_t len)
+{
+    return glshader::preprocessor::definition::from_format({ def, def+len });
 }

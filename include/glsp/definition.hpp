@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace glshader
+namespace glshader::preprocessor
 {
     struct definition_info
     {
@@ -20,10 +20,14 @@ namespace glshader
 
     struct definition
     {
+        definition() = default;
         definition(const std::string& name);
         definition(const std::string& name, const definition_info& info);
+        static definition from_format(const std::string& str);
 
         std::string name;
         definition_info info;
     };
 }
+
+glshader::preprocessor::definition operator"" _gdef(const char* def, size_t len);
