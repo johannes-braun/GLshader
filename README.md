@@ -3,6 +3,10 @@
 This is my attempt to create a preprocessor for GLSL code in C++.
 
 ## How to use?
+### Build libraries
+You can use cmake to build the binaries to later link against.
+Please use a recent compiler which supports c++17 and experimental::filesystem.
+
 ### Load file
 Include `<glsp/glsp.hpp>` and that's it.
 To load and process a file, you'd call `glsp::processed_file proc = glsp::preprocess_file("path/to/file.glsl", {}, {});`.
@@ -36,3 +40,18 @@ A formatted definition must have one of the following formats:
 * Valueless definition: `MACRO`
 * Parameterless macro with value: `MACRO val`
 * Parameterized with n parameters and empty or non-empty replacement: `MACRO(p0, p1, ..., pn) rep`
+
+### State
+You can use `glsp::state` as follows to allow for persistent predefined definitions and include directories.
+```C++
+// Once
+glsp::state preproc_state;
+preproc_state.add_definition("my_def(a, b, c) (-a + b * c)"_gdef);
+preproc_state.add_definition({ "MY_VAL", 2 });
+preproc_state.add_definition({ "NO_VAL" });
+preproc_state.add_definition({ "AddMul",{ { "a", "b", "c" }, "a + b * c" } });
+preproc_state.add_include_dir("../shaders/");
+...
+// Somewhere else
+auto file = preproc_state.preprocess_file("my_file.glsl");
+```
