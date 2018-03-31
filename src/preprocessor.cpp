@@ -128,12 +128,12 @@ namespace glshader::preprocessor
 
                     if (cls::is_token_equal(text_ptr, "require", 7))
                     {
-                        processed.extensions[extension] = true;
+                        processed.extensions[extension] = ext_state::require;
                         processed.definitions[extension] = 1;
                     }
                     else if (cls::is_token_equal(text_ptr, "enable", 6))
                     {
-                        processed.extensions[extension] = false;
+                        processed.extensions[extension] = ext_state::enable;
                         if(ext::extension_available(extension))
                             processed.definitions[extension] = 1;
                     }
@@ -143,7 +143,7 @@ namespace glshader::preprocessor
                             "Unrecognized extension requirement: " + 
                             std::string(text_ptr, skip::to_endline(text_ptr)) + 
                             ". Has to be \"require\" or \"enable\". Using \"enable\"...");
-                        processed.extensions[extension] = false;
+                        processed.extensions[extension] = ext_state::enable;
                         processed.definitions[extension] = 1;
                     }
 
@@ -552,5 +552,34 @@ namespace glshader::preprocessor
 
         processed.contents = result.str();
         return processed;
+    }
+
+    void state::add_definition(const definition& d)
+    {
+        _definitions.push_back(d);
+    }
+
+    void state::remove_definition(const std::string& name)
+    {
+        if (const auto it = std::find_if(_definitions.begin(), _definitions.end(), [&name](const definition& def) {return def.name == name; }); it != _definitions.end())
+            _definitions.erase(it);
+    }
+
+    void state::add_include_dir(const files::path& dir)
+    {
+        _include_directories.push_back(dir);
+    }
+
+    void state::remove_include_dir(const files::path& dir)
+    {
+        if (const auto it = std::find(_include_directories.begin(), _include_directories.end(), dir); it != _include_directories.end())
+            _include_directories.erase(it);
+    }
+
+    processed_file state::preprocess_file(const files::path& file_path, std::vector<files::path> include_directories, std::vector<definition> definitions)
+    {
+        include_directories.insert(include_directories.begin(), _include_directories.begin(), _include_directories.end());
+        definitions.insert(definitions.begin(), _definitions.begin(), _definitions.end());
+        return preprocessor::preprocess_file(file_path, include_directories, definitions);
     }
 }
