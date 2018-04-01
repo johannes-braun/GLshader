@@ -17,7 +17,7 @@ Example: `auto file = glsp::preprocess_file("path/to/file.glsl", {"my/shaders/"}
 
 ### Predefined definitions
 In the third function parameter, you can add predefined definitions.
-Examples:
+#### Examples:
 
 ```c++
 // Simple valueless definition
@@ -59,7 +59,18 @@ auto file = preproc_state.preprocess_file("my_file.glsl");
 ### Binary Compiler
 The `glsp::compiler` class derives from `glsp::state` and provides the functionality to compile and cache your GLSL text files to the system's proprietary binary format and load them from there.
 The resulting compiled program binary can only be used for separable programs with [opengl pipeline objects](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glCreateProgramPipelines.xhtml).
-Example:
+Shader files compiled with the `glsp::compiler` need to have proper extensions declaring their shader stage:
+
+| Extension | Type                      |
+| :-------- | :-------------------------|
+| .vert     | GL_VERTEX_SHADER          |
+| .geom     | GL_GEOMETRY_SHADER        |
+| .tesc     | GL_TESS_CONTROL_SHADER    |
+| .tese     | GL_TESS_EVALUATION_SHADER |
+| .frag     | GL_FRAGMENT_SHADER        |
+| .comp     | GL_COMPUTE_SHADER         |
+
+#### Compiler usage example:
 ```c++
 glsp::compiler compiler(".bin", "path/to/cache/");
 compiler.set_default_prefix(opengl_prefix); // optional prefix string, e.g. containing the #version tag or default extensions.
