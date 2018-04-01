@@ -3,7 +3,7 @@ project(GLShader)
 
 list(APPEND INCLUDES ${PROJECT_SOURCE_DIR}/include)
 
-if (WIN32)
+if (MSVC)
     list(APPEND LIBRARIES opengl32)
 elseif (UNIX)
     list(APPEND LIBRARIES dl stdc++fs)
