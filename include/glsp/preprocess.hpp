@@ -52,13 +52,11 @@ namespace glshader::process
         ERR_OUTPUT("Error in " + file.string() + ":" + std::to_string(line) + ": " + reason);
     }
 
-    class compiler;
     /* A preprocessor state holding include directories and definitions. */
     /* Can be used as a global default for when processing shaders, or as a slightly more flexible way to add definitions and include directories. */
     class state
     {
     public:
-        friend compiler;
         /* Add a persistent definition. */
         void add_definition(const definition& d);
         /* Remove a persistent definition by it's name (without parameters, ect.!). */
@@ -73,7 +71,7 @@ namespace glshader::process
         /* and calls the global glsp::preprocess_file function. */
         processed_file preprocess_file(const files::path& file_path, std::vector<files::path> include_directories ={}, std::vector<definition> definitions ={});
 
-    private:
+    protected:
         std::vector<files::path> _include_directories;
         std::vector<definition> _definitions;
     };

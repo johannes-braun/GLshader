@@ -24,7 +24,7 @@ namespace glshader::process
 
     }
 
-    definition::definition(const std::string& name, const definition_info& info)
+    definition::definition(const std::string& name, const definition_info& info) 
         : name(name), info(info)
     {
 

@@ -1,5 +1,7 @@
 #include <glsp/huffman.hpp>
 #include <list>
+#include <algorithm>
+#include <cstring>
 
 namespace glshader::process::compress::huffman
 {
@@ -155,7 +157,7 @@ namespace glshader::process::compress::huffman
         std::basic_stringstream<uint8_t> stream;
         std::array<uint32_t, 256> histogram{ 0 };
         uint32_t count = 0;
-        memcpy(&histogram[0], in, 256*sizeof(uint32_t));
+        std::memcpy(&histogram[0], in, 256*sizeof(uint32_t));
         int in_ptr = 256 * sizeof(uint32_t);
         for (int i=0; i<256; ++i)
         {
