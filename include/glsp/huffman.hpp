@@ -35,8 +35,9 @@ namespace glshader::process::compress::huffman
         std::basic_stringstream<uint8_t> stringstream;
 
         template<typename Container, typename = enable_if_container<Container>>
-        BaseContainer to_container()
+        std::decay_t<std::remove_const_t<Container>> to_container()
         {
+            using BaseContainer = std::decay_t<std::remove_const_t<Container>>;
             BaseContainer container;
             container.resize(stream_length / sizeof(typename BaseContainer::value_type));
             stringstream.read(reinterpret_cast<uint8_t*>(std::data(container)), std::size(container) * sizeof(typename BaseContainer::value_type));
