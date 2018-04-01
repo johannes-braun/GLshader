@@ -1,6 +1,6 @@
-# GLShader Preprocessor
+# GLShader Processor
 
-This is my attempt to create a preprocessor for GLSL code in C++.
+This is my attempt to create a preprocessor for GLSL code in C++, as well as a platform-dependant GLSL compiler with [glGetProgramBinary](https://www.khronos.org/registry/OpenGL-Refpages/es3.0/html/glGetProgramBinary.xhtml) based on [GL_ARB_separate_shader_objects](https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_separate_shader_objects.txt).
 
 ## How to use?
 ### Build libraries
@@ -19,7 +19,7 @@ Example: `auto file = glsp::preprocess_file("path/to/file.glsl", {"my/shaders/"}
 In the third function parameter, you can add predefined definitions.
 Examples:
 
-```C++
+```c++
 // Simple valueless definition
 glsp::definition def_no_val("NO_VAL");
 
@@ -43,7 +43,7 @@ A formatted definition must have one of the following formats:
 
 ### State
 You can use `glsp::state` as follows to allow for persistent predefined definitions and include directories.
-```C++
+```c++
 // Once
 glsp::state preproc_state;
 preproc_state.add_definition("my_def(a, b, c) (-a + b * c)"_gdef);
@@ -51,7 +51,35 @@ preproc_state.add_definition({ "MY_VAL", 2 });
 preproc_state.add_definition({ "NO_VAL" });
 preproc_state.add_definition({ "AddMul",{ { "a", "b", "c" }, "a + b * c" } });
 preproc_state.add_include_dir("../shaders/");
-...
+// ...
 // Somewhere else
 auto file = preproc_state.preprocess_file("my_file.glsl");
+```
+
+### Binary Compiler
+The `glsp::compiler` class derives from `glsp::state` and provides the functionality to compile and cache your GLSL text files to the system's proprietary binary format and load them from there.
+The resulting compiled program binary can only be used for separable programs with [opengl pipeline objects](https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glCreateProgramPipelines.xhtml).
+Example:
+```c++
+glsp::compiler compiler(".bin", "path/to/cache/");
+compiler.set_default_prefix(opengl_prefix); // optional prefix string, e.g. containing the #version tag or default extensions.
+compiler.set_default_postfix(opengl_postfix); // optional postfix, e.g. bindless uniform layout declarations.
+
+// Definitions and includes like with glsp::state
+compiler.add_definition(...);
+compiler.add_include_dir("my/include/dir/")
+
+glsp::shader_binary binary = compiler.compile("path/to/shader.vert", glsp::format::gl_binary, false, more_includes, more_defines);
+
+// Data is empty if there was a syntax-, compiler- or linker-error
+if(!binary.data.empty())
+{
+    my_program_id = glCreateProgram();
+    glProgramParameteri(_id, GL_PROGRAM_SEPARABLE, GL_TRUE); // Only a single program 
+    glProgramBinary(_id, GLenum(bin.format), bin.data.data(), int(bin.data.size()));
+}
+else
+{
+    // Error handling...
+}
 ```
