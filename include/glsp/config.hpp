@@ -8,5 +8,6 @@
 
 
 // NAMESPACE:
+namespace glshader::process {}
 // Shorten base namespace. You can use your own namespace if you wish.
-namespace glsp = glshader::preprocessor;
+namespace glsp = glshader::process;

@@ -3,7 +3,7 @@
 #include <set>
 #include <string>
 
-namespace glshader::preprocessor::impl::ext
+namespace glshader::process::impl::ext
 {
     void enable_extension(const char* extension);
     bool extension_available(const std::string& extension);

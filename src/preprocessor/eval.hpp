@@ -2,7 +2,7 @@
 
 #include "files.hpp"
 
-namespace glshader::preprocessor::impl::operation
+namespace glshader::process::impl::operation
 {
     /*** 
     Takes a const char* substring with a given length and tries to evaluate it's value.

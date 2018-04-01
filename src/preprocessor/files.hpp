@@ -2,7 +2,7 @@
 
 #include <experimental/filesystem>
 
-namespace glshader::preprocessor
+namespace glshader::process
 {
     namespace files = std::experimental::filesystem;
 }

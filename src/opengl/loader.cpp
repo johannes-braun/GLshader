@@ -1,4 +1,4 @@
-#include "load_gl.hpp"
+#include "loader.hpp"
 
 #include <array>
 
@@ -8,7 +8,7 @@
 #include <dlfcn.h>
 #endif
 
-namespace glshader::preprocessor::impl::load_gl
+namespace glshader::process::impl::loader
 {
     class function_loader
     {
@@ -24,14 +24,26 @@ namespace glshader::preprocessor::impl::load_gl
                 if (hnd != nullptr)
                     break;
             }
+        }
 
+        void load_getters() noexcept
+        {
 #ifdef __APPLE__
             get_fun = nullptr;
+            get_ctx_fun = reinterpret_cast<decltype(get_ctx_fun)>(get_handle(hnd, "CGLGetCurrentContext"));
 #elif defined _WIN32
-            get_fun = reinterpret_cast<decltype(get_fun)>(get_handle(hnd, "wglGetProcAddress"));
+            get_fun     = reinterpret_cast<decltype(get_fun)>(get_handle(hnd, "wglGetProcAddress"));
+            get_ctx_fun = reinterpret_cast<decltype(get_ctx_fun)>(get_handle(hnd, "wglGetCurrentContext"));
 #else
-            get_fun = reinterpret_cast<decltype(get_fun)>(get_handle(hnd, "glXGetProcAddressARB"));
+            get_fun     = reinterpret_cast<decltype(get_fun)>(get_handle(hnd, "glXGetProcAddressARB"));
+            get_ctx_fun = reinterpret_cast<decltype(get_ctx_fun)>(get_handle(hnd, "glXGetCurrentContext"));
 #endif
+            ctx = get_ctx_fun();
+        }
+
+        bool valid() const
+        {
+            return ctx && ctx == get_ctx_fun();
         }
 
         ~function_loader() 
@@ -51,6 +63,7 @@ namespace glshader::preprocessor::impl::load_gl
 
     private:
         void *hnd;
+        void* ctx;
 
         void* get_handle(void* handle, const char* name) const
         {
@@ -62,6 +75,7 @@ namespace glshader::preprocessor::impl::load_gl
         }
 
         void* (*get_fun)(const char*) = nullptr;
+        void* (*get_ctx_fun)() = nullptr;
 
 #ifdef __APPLE__
         constexpr static std::array<const char *, 4> libs ={
@@ -85,19 +99,24 @@ namespace glshader::preprocessor::impl::load_gl
 #endif
     };
 
-    const function_loader& get_loader()
+    function_loader& get_loader()
     {
         static function_loader l;
         return l;
     }
 
-    glGetIntegerv_fun_t glGetIntegerv_fun;
-    glGetStringi_fun_t glGetStringi_fun;
-    bool load_opengl()
+    bool valid() noexcept 
     {
-        glGetIntegerv_fun   = reinterpret_cast<decltype(glGetIntegerv_fun)>(get_loader().get("glGetIntegerv"));
-        glGetStringi_fun    = reinterpret_cast<decltype(glGetStringi_fun)>(get_loader().get("glGetStringi"));
+        return get_loader().valid();
+    }
 
-        return glGetIntegerv_fun && glGetStringi_fun;
+    void reload() noexcept
+    {
+        get_loader().load_getters();
+    }
+
+    void* load_function(const char* name) noexcept
+    {
+        return get_loader().get(name);
     }
 }

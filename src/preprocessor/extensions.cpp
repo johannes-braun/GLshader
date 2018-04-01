@@ -2,7 +2,7 @@
 #include <set>
 #include <string>
 
-namespace glshader::preprocessor::impl::ext
+namespace glshader::process::impl::ext
 {
     std::set<std::string> _extensions;
     void enable_extension(const char* extension)

@@ -3,7 +3,7 @@
 #include "files.hpp"
 #include <glsp/glsp.hpp>
 
-namespace glshader::preprocessor::impl::macro
+namespace glshader::process::impl::macro
 {
     bool is_defined(const std::string& val, const processed_file& processed);
     bool is_macro(const char* text_ptr, processed_file& processed);

@@ -6,7 +6,7 @@
 
 #include <sstream>
 
-namespace glshader::preprocessor::impl::macro
+namespace glshader::process::impl::macro
 {
     namespace cls = impl::classify;
     namespace ctrl = impl::control;

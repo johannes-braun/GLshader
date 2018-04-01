@@ -3,7 +3,7 @@
 #include "files.hpp"
 #include <glsp/glsp.hpp>
 
-namespace glshader::preprocessor::impl::skip
+namespace glshader::process::impl::skip
 {
     const char* space           (const char* c);
     const char* space_rev       (const char* c);

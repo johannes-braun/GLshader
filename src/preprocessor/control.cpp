@@ -1,6 +1,6 @@
 #include "control.hpp"
 
-namespace glshader::preprocessor::impl::control
+namespace glshader::process::impl::control
 {
 
     std::string line_directive(const files::path& file, int line)

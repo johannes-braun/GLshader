@@ -5,7 +5,7 @@
 #include <cstring>
 #include <list>
 
-namespace glshader::preprocessor::impl::operation
+namespace glshader::process::impl::operation
 {
     enum eval_op
     {

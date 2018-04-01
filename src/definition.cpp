@@ -3,7 +3,7 @@
 #include "preprocessor/skip.hpp"
 #include "preprocessor/classify.hpp"
 
-namespace glshader::preprocessor
+namespace glshader::process
 {
     definition_info::definition_info(const char* value)
         : definition_info(std::string(value))
@@ -68,7 +68,7 @@ namespace glshader::preprocessor
     }
 }
 
-glshader::preprocessor::definition operator"" _gdef(const char* def, size_t len)
+glsp::definition operator"" _gdef(const char* def, size_t len)
 {
-    return glshader::preprocessor::definition::from_format({ def, def+len });
+    return glsp::definition::from_format({ def, def+len });
 }

@@ -6,7 +6,7 @@
 #include <cstring>
 #include <sstream>
 
-namespace glshader::preprocessor::impl::skip
+namespace glshader::process::impl::skip
 {
     const char* space(const char* c)
     {

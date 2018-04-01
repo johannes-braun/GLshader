@@ -1,14 +1,14 @@
-#include <glsp/glsp.hpp>
+#include <glsp/preprocess.hpp>
 #include <glsp/config.hpp>
 
 /* Impl */
-#include "preprocessor/eval.hpp"
-#include "preprocessor/control.hpp"
-#include "preprocessor/classify.hpp"
-#include "preprocessor/skip.hpp"
-#include "preprocessor/macro.hpp"
-#include "preprocessor/extensions.hpp"
-#include "preprocessor/load_gl.hpp"
+#include "eval.hpp"
+#include "control.hpp"
+#include "classify.hpp"
+#include "skip.hpp"
+#include "macro.hpp"
+#include "extensions.hpp"
+#include "../opengl/loader.hpp"
 
 #include <fstream>
 #include <iterator>
@@ -18,14 +18,14 @@
 #include <cstring>
 #include <algorithm>
 
-namespace glshader::preprocessor
+namespace glshader::process
 {
     namespace cls = impl::classify;
     namespace ctrl = impl::control;
     namespace skip = impl::skip;
     namespace macro = impl::macro;
     namespace ext = impl::ext;
-    namespace lgl = impl::load_gl;
+    namespace lgl = impl::loader;
     
     void process_impl(const files::path& file_path, const std::vector<files::path>& include_directories,
         processed_file& processed, std::set<files::path>& unique_includes,
@@ -527,15 +527,24 @@ namespace glshader::preprocessor
     processed_file preprocess_file(const files::path& file_path, const std::vector<files::path>& include_directories,
         const std::vector<definition>& definitions)
     {
+        constexpr uint32_t NUM_EXTENSIONS    = 0x821D;
+        constexpr uint32_t EXTENSIONS        = 0x1F03;
+        static const void (*glGetIntegerv)(uint32_t, int*) = nullptr;
+        static const uint8_t* (*glGetStringi)(uint32_t, int) = nullptr;
+
         static bool gl_initialized = false;
-        if (!gl_initialized)
+        if (!gl_initialized || !lgl::valid())
         {
-            if (gl_initialized = lgl::load_opengl())
+            lgl::reload();
+            if (!glGetIntegerv) glGetIntegerv   = reinterpret_cast<decltype(glGetIntegerv)>(lgl::load_function("glGetIntegerv"));
+            if (!glGetStringi)  glGetStringi    = reinterpret_cast<decltype(glGetStringi)>(lgl::load_function("glGetStringi"));
+            if (glGetIntegerv && glGetStringi)
             {
+                gl_initialized = true;
                 int n;
-                lgl::glGetIntegerv_fun(lgl::NUM_EXTENSIONS, &n);
+                glGetIntegerv(NUM_EXTENSIONS, &n);
                 for (auto i = 0; i < n; ++i)
-                    ext::enable_extension(reinterpret_cast<const char*>(lgl::glGetStringi_fun(lgl::EXTENSIONS, i)));
+                    ext::enable_extension(reinterpret_cast<const char*>(glGetStringi(EXTENSIONS, i)));
             }
         }
 
@@ -581,6 +590,6 @@ namespace glshader::preprocessor
     {
         include_directories.insert(include_directories.begin(), _include_directories.begin(), _include_directories.end());
         definitions.insert(definitions.begin(), _definitions.begin(), _definitions.end());
-        return preprocessor::preprocess_file(file_path, include_directories, definitions);
+        return glsp::preprocess_file(file_path, include_directories, definitions);
     }
 }

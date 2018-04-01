@@ -4,7 +4,7 @@
 #include <cstring>
 #include <cctype>
 
-namespace glshader::preprocessor::impl::classify
+namespace glshader::process::impl::classify
 {
     bool is_eof(const char* c)
     {

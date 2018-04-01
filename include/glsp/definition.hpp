@@ -1,9 +1,10 @@
 #pragma once
 
+#include "config.hpp"
 #include <string>
 #include <vector>
 
-namespace glshader::preprocessor
+namespace glshader::process
 {
     /* Holds all the needed information for resolving a definition. */
     struct definition_info
@@ -45,4 +46,4 @@ namespace glshader::preprocessor
 }
 
 /* Calls and returns glsp::definition::from_format({def, def+len}). */
-glshader::preprocessor::definition operator"" _gdef(const char* def, size_t len);
+glsp::definition operator"" _gdef(const char* def, size_t len);
