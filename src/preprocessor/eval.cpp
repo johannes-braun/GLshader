@@ -1,6 +1,7 @@
 #include "eval.hpp"
 
 #include "control.hpp"
+#include "../strings.hpp"
 
 #include <cstring>
 #include <list>
@@ -96,7 +97,7 @@ namespace glshader::process::impl::operation
                         ++c;
                         if (c - begin > len)
                         {
-                            syntax_error(file, line, "Unexpected end of brackets.");
+                            syntax_error(file, line, strings::serr_eval_end_of_brackets);
                             return 0;
                         }
                         if (*c == '(') ++stk;

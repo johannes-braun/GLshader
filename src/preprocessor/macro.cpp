@@ -3,6 +3,8 @@
 #include "classify.hpp"
 #include "control.hpp"
 #include "skip.hpp"
+#include "extensions.hpp"
+#include "../strings.hpp"
 
 #include <sstream>
 
@@ -14,6 +16,8 @@ namespace glshader::process::impl::macro
 
     bool is_defined(const std::string& val, const processed_file& processed)
     {
+        if (std::strncmp(val.data(), "GL_", 3) && ext::extension_available(val))
+            return true;
         return processed.definitions.count(val) != 0;
     }
 
@@ -56,7 +60,7 @@ namespace glshader::process::impl::macro
         if (inputs.size() != info.parameters.size() || (info.parameters.size() >= inputs.size() - 1 && inputs.back() ==
             "..."))
         {
-            syntax_error(current_file, current_line, "Macro " + name + ": non-matching argument count.");
+            syntax_error(current_file, current_line, strfmt(strings::serr_non_matching_argc, name));
             return "";
         }
 

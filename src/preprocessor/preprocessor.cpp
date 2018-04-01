@@ -2,6 +2,7 @@
 #include <glsp/config.hpp>
 
 /* Impl */
+#include "../strings.hpp"
 #include "eval.hpp"
 #include "control.hpp"
 #include "classify.hpp"
@@ -101,11 +102,11 @@ namespace glshader::process
                     else if (cls::is_token_equal(text_ptr, "compatibility", 13))
                     {
                         processed.definitions["GL_compatibility_profile"] = 1;
-                        processed.profile = shader_profile::compat;
+                        processed.profile = shader_profile::compatibility;
                     }
                     else
                     {
-                        syntax_error(current_file, current_line, "Unrecognized profile: " + std::string(text_ptr, skip::to_endline(text_ptr)) + ". Using core.");
+                        syntax_error(current_file, current_line, strfmt(strings::serr_unrecognized_profile, std::string(text_ptr, skip::to_endline(text_ptr))));
                         processed.definitions["GL_core_profile"] = 1;
                         processed.profile = shader_profile::core;
                     }
@@ -127,27 +128,28 @@ namespace glshader::process
 
                     text_ptr = skip::space((*(text_ptr - 1) == ':') ? text_ptr : skip::space(name_end) + 1);
 
-                    if (cls::is_token_equal(text_ptr, "require", 7))
+                    if (extension == "all")
                     {
-                        processed.extensions[extension] = ext_state::require;
-                        processed.definitions[extension] = 1;
-                    }
-                    else if (cls::is_token_equal(text_ptr, "enable", 6))
-                    {
-                        processed.extensions[extension] = ext_state::enable;
-                        if(ext::extension_available(extension))
-                            processed.definitions[extension] = 1;
+                        if (cls::is_token_equal(text_ptr, "warn", 6))
+                            processed.extensions[extension] = ext_behavior::warn;
+                        else if (cls::is_token_equal(text_ptr, "disable", 6))
+                            processed.extensions[extension] = ext_behavior::disable;
+                        else
+                            syntax_error(current_file, current_line, strfmt(strings::serr_extension_all_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
                     }
                     else
                     {
-                        syntax_error(current_file, current_line,
-                            "Unrecognized extension requirement: " + 
-                            std::string(text_ptr, skip::to_endline(text_ptr)) + 
-                            ". Has to be \"require\" or \"enable\". Using \"enable\"...");
-                        processed.extensions[extension] = ext_state::enable;
-                        processed.definitions[extension] = 1;
+                        if (cls::is_token_equal(text_ptr, "require", 7))
+                            processed.extensions[extension] = ext_behavior::require;
+                        else if (cls::is_token_equal(text_ptr, "enable", 6))
+                            processed.extensions[extension] = ext_behavior::enable;
+                        else if (cls::is_token_equal(text_ptr, "warn", 6))
+                            processed.extensions[extension] = ext_behavior::warn;
+                        else if (cls::is_token_equal(text_ptr, "disable", 6))
+                            processed.extensions[extension] = ext_behavior::disable;
+                        else
+                            syntax_error(current_file, current_line, strfmt(strings::serr_extension_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
                     }
-
                     while (!cls::is_newline(text_ptr))
                         result << *text_ptr++;
                 }
@@ -365,7 +367,7 @@ namespace glshader::process
                             }
                             else if (cls::is_eof(text_ptr))
                             {
-                                syntax_error(current_file, current_line, "No closing endif or else found for if-expression in line " + std::to_string(ifline) + ".");
+                                syntax_error(current_file, current_line, strfmt(strings::serr_no_endif_else, ifline));
                                 return;
                             }
                         }
@@ -399,7 +401,7 @@ namespace glshader::process
                             }
                             else if (cls::is_eof(text_ptr))
                             {
-                                syntax_error(current_file, current_line, "no closing endif found.");
+                                syntax_error(current_file, current_line, strings::serr_no_endif);
                                 return;
                             }
 
@@ -438,8 +440,7 @@ namespace glshader::process
                         }
                         else
                         {
-                            syntax_error(current_file, current_line,
-                                "Invalid line directive, did not find closing \".");
+                            syntax_error(current_file, current_line, strings::serr_invalid_line);
 
                             current_file = files::path(std::string(text_ptr + 1, file_name_end));
                             processed.definitions["__FILE__"] = current_file.string();
@@ -464,7 +465,7 @@ namespace glshader::process
                     if ((include_filename.front() != '\"' && include_filename.back() != '\"') && (include_filename.
                         front() != '<' && include_filename.back() != '>'))
                     {
-                        syntax_error(current_file, current_line, "Include must be in \"...\" or <...>");
+                        syntax_error(current_file, current_line, strings::serr_invalid_include);
                         return;
                     }
                     files::path file = { std::string(include_filename.begin() + 1, include_filename.end() - 1) };
@@ -486,7 +487,7 @@ namespace glshader::process
 
                     if (!files::exists(file))
                     {
-                        syntax_error(current_file, current_line, "File not found: " + std::string(include_filename.begin() + 1, include_filename.end() - 1));
+                        syntax_error(current_file, current_line, strfmt(strings::serr_file_not_found, std::string(include_filename.begin() + 1, include_filename.end() - 1)));
                         return;
                     }
 

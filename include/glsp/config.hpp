@@ -1,11 +1,17 @@
-#pragma once
+/*******************************************************************************/
+/* File     config.hpp
+/* Author   Johannes Braun
+/* Created  31.03.2018
+/*
+/* User space for own settings.
+/*******************************************************************************/
 
+#pragma once
 
 // CUSTOM LOGGING:
 // If you want to use your own logger for error logs, you can define ERR_OUTPUT(x) with x being the logged string.
-// Example:
-// #define ERR_OUTPUT(x) tlog_e("GLShader") << (x)
-
+// Example for a custom stream-style logger:
+// #define ERR_OUTPUT(x) my_logger("GLShader") << (x)
 
 // NAMESPACE:
 namespace glshader::process {}

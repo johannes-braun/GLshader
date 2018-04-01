@@ -3,6 +3,7 @@
 #include <glsp/huffman.hpp>
 #include "../preprocessor/files.hpp"
 #include "../opengl/loader.hpp"
+#include "../strings.hpp"
 #include <cassert>
 #include <fstream>
 
@@ -78,7 +79,7 @@ namespace glshader::process
         if (!(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))
         {
             result.success = false;
-            syntax_error("Function Loader", 0, "Unable to load required OpenGL functions. Please check whether the current context is valid and supports GL_ARB_separate_shader_objects.");
+            syntax_error("Function Loader", 0, strings::serr_loader_failed);
             return result;
         }
 
@@ -112,8 +113,9 @@ namespace glshader::process
     }
 
     compiler::compiler(const std::string& extension, const glsp::files::path& cache_dir)
-        : _extension(extension), _cache_dir(cache_dir)
+        : _cache_dir(cache_dir)
     {
+        set_extension(extension);
     }
 
     void compiler::set_extension(const std::string& ext)
@@ -234,7 +236,7 @@ namespace glshader::process
                 result.format = internal_format;
             } break;
             case format::spirv:
-                syntax_error("Loader", 0, "SPIR-V is currently not supported.");
+                syntax_error("Loader", 0, strfmt(strings::serr_unsupported, "SPIR-V"));
             default:
                 result.data.clear();
                 return result;

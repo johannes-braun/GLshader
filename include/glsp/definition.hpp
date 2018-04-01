@@ -1,3 +1,11 @@
+/*******************************************************************************/
+/* File     definition.hpp
+/* Author   Johannes Braun
+/* Created  30.03.2018
+/*
+/* Wrapper for in-code #define directives.
+/*******************************************************************************/
+
 #pragma once
 
 #include "config.hpp"
@@ -34,8 +42,8 @@ namespace glshader::process
         /* Full initialization with name and info. */
         definition(const std::string& name, const definition_info& info);
 
-        /* Parse string and construct definition from it. */
-        /* Format: MACRO(p0, p1, ..., pn) replacement */
+        /* Parse string and construct definition from it.
+        Format: MACRO(p0, p1, ..., pn) replacement */
         static definition from_format(const std::string& str);
 
         /* Macro name written in code. */
