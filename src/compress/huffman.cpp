@@ -16,19 +16,19 @@ namespace glshader::process::compress::huffman
             : f(f), val(v), left(l), right(r), parent(p), tag(t) {}
     };
 
-    struct node_comparator {
-        constexpr bool operator()(node* one, node* other) const noexcept
-        {
-            return one->f > other->f;
-        }
+    struct code {
+        uint32_t length;
+        std::list<uint8_t> signature;
     };
 
     std::vector<node> build_tree(const std::array<uint32_t, 256>& histogram, uint32_t non_zero_count)
     {
+        struct node_comparator {
+            constexpr bool operator()(node* one, node* other) const noexcept { return one->f > other->f; }
+        };
         std::vector<node> nodes;
         nodes.reserve(2 * non_zero_count);
         std::priority_queue<node*, std::vector<node*>, node_comparator> queue;
-        const auto index_of = [&nodes](const node* n) { return size_t(n-nodes.data()); };
 
         for (int i=0; i<256; ++i)
         {
@@ -59,12 +59,7 @@ namespace glshader::process::compress::huffman
         return nodes;
     }
 
-    struct code {
-        uint32_t length;
-        std::list<uint8_t> signature;
-    };
-
-    std::array<code, 256> generate_codes(const std::vector<node>& tree, const uint32_t leaf_nodes)
+    std::array<code, 256> generate_codes(const std::vector<node>& tree, const std::array<uint32_t, 256>& histogram, const uint32_t leaf_nodes)
     {
         std::array<code, 256> codes{ 0 };
         for (int i=0, ch = 0; i<256; ++i)
@@ -99,7 +94,6 @@ namespace glshader::process::compress::huffman
     {
         uint32_t count = 0;
         std::array<uint32_t, 256> histogram{ 0 };
-        std::array<bool, 256> count_lock{ false };
         std::basic_stringstream<uint8_t> stream;
 
         for (size_t i = 0; i < in_length; ++i)
@@ -111,7 +105,7 @@ namespace glshader::process::compress::huffman
         stream.write(reinterpret_cast<uint8_t*>(histogram.data()), sizeof(uint32_t) * histogram.size());
 
         std::vector<node>     nodes = build_tree(histogram, count);
-        std::array<code, 256> codes = generate_codes(nodes, count);
+        std::array<code, 256> codes = generate_codes(nodes, histogram, count);
 
         int bp = 0;
         uint8_t c = 0;
@@ -165,7 +159,7 @@ namespace glshader::process::compress::huffman
         }
 
         std::vector<node>     nodes = build_tree(histogram, count);
-        std::array<code, 256> codes = generate_codes(nodes, count);
+        std::array<code, 256> codes = generate_codes(nodes, histogram, count);
 
         int bp = 0;
         uint8_t c = in[in_ptr++];
