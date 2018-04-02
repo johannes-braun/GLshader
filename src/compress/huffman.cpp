@@ -67,11 +67,11 @@ namespace glshader::process::compress::huffman
     std::array<code, 256> generate_codes(const std::vector<node>& tree, const uint32_t leaf_nodes)
     {
         std::array<code, 256> codes{ 0 };
-        for (int i=0; i<256; ++i)
+        for (int i=0, ch = 0; i<256; ++i)
         {
-            if (const auto it = std::find_if(tree.begin(), tree.begin() + leaf_nodes, [i](const node& n) { return n.val == uint8_t(i); }); it != tree.end())
+            if (histogram[i]>0)
             {
-                const node* n       = &*it;
+                const node* n       = &tree[ch++];
                 codes[i].signature.clear();
                 codes[i].length     = 0;
                 auto ins_it         = codes[i].signature.end();
