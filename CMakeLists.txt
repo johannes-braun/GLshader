@@ -5,6 +5,7 @@ list(APPEND INCLUDES ${PROJECT_SOURCE_DIR}/include)
 
 if (MSVC)
     list(APPEND LIBRARIES opengl32)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
 elseif (UNIX)
     list(APPEND LIBRARIES dl stdc++fs)
 endif()
