@@ -45,10 +45,10 @@ namespace glshader::process
         int current_line = 1;
         std::string curr = current_file.filename().string();
         std::replace(curr.begin(), curr.end(), '\\', '/');
-        if (processed.dependencies.empty())
+      /*  if (!processed.dependencies.empty())
         {
             result << "#line " << current_line - 1 << " \"" << curr << "\"\n\n";
-        }
+        }*/
 
         // There is no way you could put a macro starting from the first character of the shader.
         // Set to true if the current text_ptr may point to the start of a macro name.
