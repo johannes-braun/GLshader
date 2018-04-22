@@ -28,15 +28,12 @@ namespace glshader::process
     namespace ext = impl::ext;
     namespace lgl = impl::loader;
 
-    void process_impl(const files::path& file_path, const std::vector<files::path>& include_directories,
+    void process_impl(const files::path& file_path, const std::string& contents, const std::vector<files::path>& include_directories,
         processed_file& processed, std::set<files::path>& unique_includes,
         std::stringstream& result)
     {
         int defines_nesting = 0;
         std::stack<bool> accept_else_directive;
-
-        std::ifstream root_file(file_path, std::ios::in);
-        std::string contents(std::istreambuf_iterator<char>{root_file}, std::istreambuf_iterator<char>{});
 
         const char* text_ptr = contents.data();
 
@@ -505,7 +502,10 @@ namespace glshader::process
                         result << ctrl::line_directive(current_file, current_line);
                         result << ctrl::line_directive(file, 1);
                         processed.dependencies.emplace(file);
-                        process_impl(file, include_directories, processed, unique_includes, result);
+
+                        std::ifstream root_file(file, std::ios::in);
+                        std::string contents(std::istreambuf_iterator<char>{root_file}, std::istreambuf_iterator<char>{});
+                        process_impl(file, contents, include_directories, processed, unique_includes, result);
                     }
                     text_ptr = skip::to_endline(include_begin);
 
@@ -537,6 +537,14 @@ namespace glshader::process
     processed_file preprocess_file(const files::path& file_path, const std::vector<files::path>& include_directories,
         const std::vector<definition>& definitions)
     {
+        std::ifstream root_file(file_path, std::ios::in);
+        std::string contents(std::istreambuf_iterator<char>{root_file}, std::istreambuf_iterator<char>{});
+        return preprocess_source(contents, file_path.string(), include_directories, definitions);
+    }
+
+    processed_file preprocess_source(const std::string& source, const std::string& name, 
+        const std::vector<files::path>& include_directories, const std::vector<definition>& definitions)
+    {
         constexpr uint32_t NUM_EXTENSIONS    = 0x821D;
         constexpr uint32_t EXTENSIONS        = 0x1F03;
         static const void (*glGetIntegerv)(uint32_t, int*) = nullptr;
@@ -560,15 +568,15 @@ namespace glshader::process
 
         processed_file processed;
         processed.version = -1;
-        processed.file_path = file_path;
+        processed.file_path = name;
 
         for (auto&& definition : definitions)
             processed.definitions[definition.name] = definition.info;
 
         std::stringstream result;
         std::set<files::path> unique_includes;
-        unique_includes.emplace(file_path);
-        process_impl(file_path, include_directories, processed, unique_includes, result);
+        unique_includes.emplace(name);
+        process_impl(name, source, include_directories, processed, unique_includes, result);
 
         processed.contents = result.str();
         return processed;
@@ -601,6 +609,13 @@ namespace glshader::process
         include_directories.insert(include_directories.begin(), _include_directories.begin(), _include_directories.end());
         definitions.insert(definitions.begin(), _definitions.begin(), _definitions.end());
         return glsp::preprocess_file(file_path, include_directories, definitions);
+    }
+
+    processed_file state::preprocess_source(const std::string& source, const std::string& name, std::vector<files::path> include_directories, std::vector<definition> definitions)
+    {
+        include_directories.insert(include_directories.begin(), _include_directories.begin(), _include_directories.end());
+        definitions.insert(definitions.begin(), _definitions.begin(), _definitions.end());
+        return glsp::preprocess_source(source, name, include_directories, definitions);
     }
 
     bool processed_file::valid() const noexcept

@@ -18,6 +18,15 @@ int main()
         std::cout << "Failed to process file.\n";
     }
 
+    constexpr const char* source = R"(
+#include "inc.glsl"
+    
+void main()
+{}
+)";
+
+    const glsp::processed_file src = process_state.preprocess_source(source, "Shader");
+
     std::cin.ignore();
     return 0;
 }
