@@ -60,7 +60,8 @@ namespace glshader::process::impl::macro
         if (inputs.size() != info.parameters.size() || (info.parameters.size() >= inputs.size() - 1 && inputs.back() ==
             "..."))
         {
-            syntax_error(current_file, current_line, strfmt(strings::serr_non_matching_argc, name));
+            ++processed.error_count;
+            syntax_error_print(current_file, current_line, strfmt(strings::serr_non_matching_argc, name));
             return "";
         }
 

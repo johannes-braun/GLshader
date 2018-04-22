@@ -6,6 +6,7 @@
 #include "../strings.hpp"
 #include <cassert>
 #include <fstream>
+#include <sstream>
 
 namespace glshader::process
 {
@@ -79,7 +80,7 @@ namespace glshader::process
         if (!(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))
         {
             result.success = false;
-            syntax_error("Function Loader", 0, strings::serr_loader_failed);
+            syntax_error_print("Function Loader", 0, strings::serr_loader_failed);
             return result;
         }
 
@@ -98,7 +99,7 @@ namespace glshader::process
             std::string log(log_length, ' ');
             glGetProgramInfoLog(id, log_length, &log_length, log.data());
             glDeleteProgram(id);
-            syntax_error("Linking", 0, log);
+            syntax_error_print("Linking", 0, log);
             result.success = false;
             return result;
         }
@@ -236,7 +237,7 @@ namespace glshader::process
                 result.format = internal_format;
             } break;
             case format::spirv:
-                syntax_error("Loader", 0, strfmt(strings::serr_unsupported, "SPIR-V"));
+                syntax_error_print("Loader", 0, strfmt(strings::serr_unsupported, "SPIR-V"));
             default:
                 result.data.clear();
                 return result;

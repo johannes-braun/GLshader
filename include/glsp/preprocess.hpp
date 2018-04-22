@@ -47,6 +47,10 @@ namespace glshader::process
         std::map<std::string, ext_behavior> extensions;     /* All explicitly enabled/required glsl extensions. */
         std::map<std::string, definition_info> definitions; /* All definitions which have been defined in the shader without being undefined afterwards. */
         std::string contents;                               /* The fully processed shader code string. */
+        int error_count = 0;                                /* The number of syntax errors that occurred while preprocessing. */
+
+        bool valid() const noexcept;                        /* Returns true when the file has been processed successfully, false when there were syntax errors. */
+        operator bool() const noexcept;                     /* Returns true when the file has been processed successfully, false when there were syntax errors. */
     };
 
     /* Loads and processes a shader file.
@@ -59,7 +63,7 @@ namespace glshader::process
 
     /* Customizable function which is called when a syntax error was detected.
     You can redefine ERR_OUTPUT(str) in config.h. */
-    inline void syntax_error(const files::path& file, const int line, const std::string& reason)
+    inline void syntax_error_print(const files::path& file, const int line, const std::string& reason)
     {
         ERR_OUTPUT("Error in " + file.string() + ":" + std::to_string(line) + ": " + reason);
     }

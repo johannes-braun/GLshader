@@ -27,7 +27,7 @@ namespace glshader::process
     namespace macro = impl::macro;
     namespace ext = impl::ext;
     namespace lgl = impl::loader;
-    
+
     void process_impl(const files::path& file_path, const std::vector<files::path>& include_directories,
         processed_file& processed, std::set<files::path>& unique_includes,
         std::stringstream& result)
@@ -45,10 +45,6 @@ namespace glshader::process
         int current_line = 1;
         std::string curr = current_file.filename().string();
         std::replace(curr.begin(), curr.end(), '\\', '/');
-      /*  if (!processed.dependencies.empty())
-        {
-            result << "#line " << current_line - 1 << " \"" << curr << "\"\n\n";
-        }*/
 
         // There is no way you could put a macro starting from the first character of the shader.
         // Set to true if the current text_ptr may point to the start of a macro name.
@@ -84,7 +80,7 @@ namespace glshader::process
                         (*(text_ptr + 1) - '0') * 10 +
                         (*(text_ptr + 2) - '0');
 
-                    processed.definitions["__VERSION__"] = std::string{text_ptr, text_ptr + 3};
+                    processed.definitions["__VERSION__"] = std::string{ text_ptr, text_ptr + 3 };
 
                     result << "#version " << *text_ptr << *(text_ptr + 1) << *(text_ptr + 2) << " ";
                     text_ptr = skip::to_next_token(text_ptr);
@@ -106,7 +102,8 @@ namespace glshader::process
                     }
                     else
                     {
-                        syntax_error(current_file, current_line, strfmt(strings::serr_unrecognized_profile, std::string(text_ptr, skip::to_endline(text_ptr))));
+                        ++processed.error_count;
+                        syntax_error_print(current_file, current_line, strfmt(strings::serr_unrecognized_profile, std::string(text_ptr, skip::to_endline(text_ptr))));
                         processed.definitions["GL_core_profile"] = 1;
                         processed.profile = shader_profile::core;
                     }
@@ -135,7 +132,10 @@ namespace glshader::process
                         else if (cls::is_token_equal(text_ptr, "disable", 6))
                             processed.extensions[extension] = ext_behavior::disable;
                         else
-                            syntax_error(current_file, current_line, strfmt(strings::serr_extension_all_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
+                        {
+                            ++processed.error_count;
+                            syntax_error_print(current_file, current_line, strfmt(strings::serr_extension_all_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
+                        }
                     }
                     else
                     {
@@ -148,7 +148,10 @@ namespace glshader::process
                         else if (cls::is_token_equal(text_ptr, "disable", 6))
                             processed.extensions[extension] = ext_behavior::disable;
                         else
-                            syntax_error(current_file, current_line, strfmt(strings::serr_extension_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
+                        {
+                            ++processed.error_count;
+                            syntax_error_print(current_file, current_line, strfmt(strings::serr_extension_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
+                        }
                     }
                     while (!cls::is_newline(text_ptr))
                         result << *text_ptr++;
@@ -246,7 +249,7 @@ namespace glshader::process
                                 param_stream.ignore();
                         }
 
-                        processed.definitions[{name_begin, name_end}] = { std::move(parameters), definition_stream.str() };
+                        processed.definitions[{name_begin, name_end}] ={ std::move(parameters), definition_stream.str() };
 
                         text_ptr = value_end;
                     }
@@ -317,7 +320,7 @@ namespace glshader::process
                         auto line_str = line.str();
                         auto str = macro::expand(line_str.c_str(), text_ptr, current_file, current_line, processed);
 
-                        evaluated = impl::operation::eval(str.data(), static_cast<int>(str.length()), current_file, current_line);
+                        evaluated = impl::operation::eval(str.data(), static_cast<int>(str.length()), current_file, current_line, processed);
                     }
 
                     if (evaluated)
@@ -367,7 +370,8 @@ namespace glshader::process
                             }
                             else if (cls::is_eof(text_ptr))
                             {
-                                syntax_error(current_file, current_line, strfmt(strings::serr_no_endif_else, ifline));
+                                ++processed.error_count;
+                                syntax_error_print(current_file, current_line, strfmt(strings::serr_no_endif_else, ifline));
                                 return;
                             }
                         }
@@ -401,7 +405,8 @@ namespace glshader::process
                             }
                             else if (cls::is_eof(text_ptr))
                             {
-                                syntax_error(current_file, current_line, strings::serr_no_endif);
+                                ++processed.error_count;
+                                syntax_error_print(current_file, current_line, strings::serr_no_endif);
                                 return;
                             }
 
@@ -440,7 +445,8 @@ namespace glshader::process
                         }
                         else
                         {
-                            syntax_error(current_file, current_line, strings::serr_invalid_line);
+                            ++processed.error_count;
+                            syntax_error_print(current_file, current_line, strings::serr_invalid_line);
 
                             current_file = files::path(std::string(text_ptr + 1, file_name_end));
                             processed.definitions["__FILE__"] = current_file.string();
@@ -454,7 +460,8 @@ namespace glshader::process
                 else if (cls::is_token_equal(directive_name, "error", 5))
                 {
                     const auto begin = skip::to_next_token(directive_name);
-                    syntax_error(current_file, current_line, std::string(begin, skip::to_endline(begin)));
+                    ++processed.error_count;
+                    syntax_error_print(current_file, current_line, std::string(begin, skip::to_endline(begin)));
                     return;
                 }
                 else if (cls::is_token_equal(directive_name, "include", 7))
@@ -465,10 +472,11 @@ namespace glshader::process
                     if ((include_filename.front() != '\"' && include_filename.back() != '\"') && (include_filename.
                         front() != '<' && include_filename.back() != '>'))
                     {
-                        syntax_error(current_file, current_line, strings::serr_invalid_include);
+                        ++processed.error_count;
+                        syntax_error_print(current_file, current_line, strings::serr_invalid_include);
                         return;
                     }
-                    files::path file = { std::string(include_filename.begin() + 1, include_filename.end() - 1) };
+                    files::path file ={ std::string(include_filename.begin() + 1, include_filename.end() - 1) };
 
                     bool found_file = false;
                     for (auto&& directory : include_directories)
@@ -487,7 +495,8 @@ namespace glshader::process
 
                     if (!files::exists(file))
                     {
-                        syntax_error(current_file, current_line, strfmt(strings::serr_file_not_found, std::string(include_filename.begin() + 1, include_filename.end() - 1)));
+                        ++processed.error_count;
+                        syntax_error_print(current_file, current_line, strfmt(strings::serr_file_not_found, std::string(include_filename.begin() + 1, include_filename.end() - 1)));
                         return;
                     }
 
@@ -592,5 +601,15 @@ namespace glshader::process
         include_directories.insert(include_directories.begin(), _include_directories.begin(), _include_directories.end());
         definitions.insert(definitions.begin(), _definitions.begin(), _definitions.end());
         return glsp::preprocess_file(file_path, include_directories, definitions);
+    }
+
+    bool processed_file::valid() const noexcept
+    {
+        return error_count == 0;
+    }
+
+    processed_file::operator bool() const noexcept
+    {
+        return valid();
     }
 }

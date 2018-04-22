@@ -57,8 +57,8 @@ namespace glshader::process::impl::operation
         return std::strncmp(x, y, len) == 0;
     }
 
-    int eval_operator(const char* begin, const eval_item& o, int len, const files::path& file, const int line);
-    int eval(const char* x, int len, const files::path& file, const int line)
+    int eval_operator(const char* begin, const eval_item& o, int len, const files::path& file, const int line, processed_file& processed);
+    int eval(const char* x, int len, const files::path& file, const int line, processed_file& processed)
     {
         enum state
         {
@@ -97,7 +97,8 @@ namespace glshader::process::impl::operation
                         ++c;
                         if (c - begin > len)
                         {
-                            syntax_error(file, line, strings::serr_eval_end_of_brackets);
+                            ++processed.error_count;
+                            syntax_error_print(file, line, strings::serr_eval_end_of_brackets);
                             return 0;
                         }
                         if (*c == '(') ++stk;
@@ -148,10 +149,10 @@ namespace glshader::process::impl::operation
         if (limit == opstack.end())
             limit = opstack.begin();
 
-        return eval_operator(begin, *limit, len, file, line);
+        return eval_operator(begin, *limit, len, file, line, processed);
     }
 
-    int eval_operator(const char* begin, const eval_item& o, int len, const files::path& file, const int line)
+    int eval_operator(const char* begin, const eval_item& o, int len, const files::path& file, const int line, processed_file& processed)
     {
         const int num_begin = int(o.first_of_op - begin);
         const int num_end = int(len - (o.first_after_op - begin));
@@ -159,26 +160,26 @@ namespace glshader::process::impl::operation
         /*** Curious switch :P ***/
         switch (o.o)
         {
-        case op_neg:    return - eval(o.first_after_op, num_end, file, line);
-        case op_pos:    return + eval(o.first_after_op, num_end, file, line);
-        case op_not:    return ! eval(o.first_after_op, num_end, file, line);
-        case op_inv:    return ~ eval(o.first_after_op, num_end, file, line);
-        case op_mul:    return eval(begin, num_begin, file, line) *  eval(o.first_after_op, num_end, file, line);
-        case op_div:    return eval(begin, num_begin, file, line) /  eval(o.first_after_op, num_end, file, line);
-        case op_mod:    return eval(begin, num_begin, file, line) %  eval(o.first_after_op, num_end, file, line);
-        case op_add:    return eval(begin, num_begin, file, line) +  eval(o.first_after_op, num_end, file, line);
-        case op_sub:    return eval(begin, num_begin, file, line) -  eval(o.first_after_op, num_end, file, line);
-        case op_lt:     return eval(begin, num_begin, file, line) <  eval(o.first_after_op, num_end, file, line);
-        case op_leq:    return eval(begin, num_begin, file, line) <= eval(o.first_after_op, num_end, file, line);
-        case op_gt:     return eval(begin, num_begin, file, line) >  eval(o.first_after_op, num_end, file, line);
-        case op_geq:    return eval(begin, num_begin, file, line) >= eval(o.first_after_op, num_end, file, line);
-        case op_eq:     return eval(begin, num_begin, file, line) == eval(o.first_after_op, num_end, file, line);
-        case op_neq:    return eval(begin, num_begin, file, line) != eval(o.first_after_op, num_end, file, line);
-        case op_and:    return eval(begin, num_begin, file, line) &  eval(o.first_after_op, num_end, file, line);
-        case op_xor:    return eval(begin, num_begin, file, line) ^  eval(o.first_after_op, num_end, file, line);
-        case op_or:     return eval(begin, num_begin, file, line) |  eval(o.first_after_op, num_end, file, line);
-        case op_land:   return eval(begin, num_begin, file, line) && eval(o.first_after_op, num_end, file, line);
-        case op_lor:    return eval(begin, num_begin, file, line) || eval(o.first_after_op, num_end, file, line);
+        case op_neg:    return - eval(o.first_after_op, num_end, file, line, processed);
+        case op_pos:    return + eval(o.first_after_op, num_end, file, line, processed);
+        case op_not:    return ! eval(o.first_after_op, num_end, file, line, processed);
+        case op_inv:    return ~ eval(o.first_after_op, num_end, file, line, processed);
+        case op_mul:    return eval(begin, num_begin, file, line, processed) *  eval(o.first_after_op, num_end, file, line, processed);
+        case op_div:    return eval(begin, num_begin, file, line, processed) /  eval(o.first_after_op, num_end, file, line, processed);
+        case op_mod:    return eval(begin, num_begin, file, line, processed) %  eval(o.first_after_op, num_end, file, line, processed);
+        case op_add:    return eval(begin, num_begin, file, line, processed) +  eval(o.first_after_op, num_end, file, line, processed);
+        case op_sub:    return eval(begin, num_begin, file, line, processed) -  eval(o.first_after_op, num_end, file, line, processed);
+        case op_lt:     return eval(begin, num_begin, file, line, processed) <  eval(o.first_after_op, num_end, file, line, processed);
+        case op_leq:    return eval(begin, num_begin, file, line, processed) <= eval(o.first_after_op, num_end, file, line, processed);
+        case op_gt:     return eval(begin, num_begin, file, line, processed) >  eval(o.first_after_op, num_end, file, line, processed);
+        case op_geq:    return eval(begin, num_begin, file, line, processed) >= eval(o.first_after_op, num_end, file, line, processed);
+        case op_eq:     return eval(begin, num_begin, file, line, processed) == eval(o.first_after_op, num_end, file, line, processed);
+        case op_neq:    return eval(begin, num_begin, file, line, processed) != eval(o.first_after_op, num_end, file, line, processed);
+        case op_and:    return eval(begin, num_begin, file, line, processed) &  eval(o.first_after_op, num_end, file, line, processed);
+        case op_xor:    return eval(begin, num_begin, file, line, processed) ^  eval(o.first_after_op, num_end, file, line, processed);
+        case op_or:     return eval(begin, num_begin, file, line, processed) |  eval(o.first_after_op, num_end, file, line, processed);
+        case op_land:   return eval(begin, num_begin, file, line, processed) && eval(o.first_after_op, num_end, file, line, processed);
+        case op_lor:    return eval(begin, num_begin, file, line, processed) || eval(o.first_after_op, num_end, file, line, processed);
         default:        return 0;
         }
     }
