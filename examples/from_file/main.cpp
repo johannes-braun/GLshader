@@ -12,7 +12,7 @@ int main()
     });
 
     glsp::state process_state;
-    const glsp::processed_file file = process_state.preprocess_file("test.vert");
+    const glsp::processed_file file = process_state.preprocess_file("testu.vert");
     if(!file)
     {
         std::cout << "Failed to process file.\n";

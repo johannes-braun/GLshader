@@ -36,7 +36,6 @@ namespace glshader::process
         std::stack<bool> accept_else_directive;
 
         const char* text_ptr = contents.data();
-
         files::path current_file = file_path;
         processed.definitions["__FILE__"] = current_file.string();
         int current_line = 1;
@@ -100,7 +99,7 @@ namespace glshader::process
                     else
                     {
                         ++processed.error_count;
-                        syntax_error_print(current_file, current_line, strfmt(strings::serr_unrecognized_profile, std::string(text_ptr, skip::to_endline(text_ptr))));
+                        syntax_error_print(current_file, current_line, strfmt(strings::serr_unrecognized_profile, std::string(text_ptr, skip::to_endline(text_ptr)).c_str()));
                         processed.definitions["GL_core_profile"] = 1;
                         processed.profile = shader_profile::core;
                     }
@@ -131,7 +130,7 @@ namespace glshader::process
                         else
                         {
                             ++processed.error_count;
-                            syntax_error_print(current_file, current_line, strfmt(strings::serr_extension_all_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
+                            syntax_error_print(current_file, current_line, strfmt(strings::serr_extension_all_behavior, std::string(text_ptr, skip::to_endline(text_ptr)).c_str()));
                         }
                     }
                     else
@@ -147,7 +146,7 @@ namespace glshader::process
                         else
                         {
                             ++processed.error_count;
-                            syntax_error_print(current_file, current_line, strfmt(strings::serr_extension_behavior, std::string(text_ptr, skip::to_endline(text_ptr))));
+                            syntax_error_print(current_file, current_line, strfmt(strings::serr_extension_behavior, std::string(text_ptr, skip::to_endline(text_ptr)).c_str()));
                         }
                     }
                     while (!cls::is_newline(text_ptr))
@@ -458,7 +457,7 @@ namespace glshader::process
                 {
                     const auto begin = skip::to_next_token(directive_name);
                     ++processed.error_count;
-                    syntax_error_print(current_file, current_line, std::string(begin, skip::to_endline(begin)));
+                    syntax_error_print(current_file, current_line, std::string(begin, skip::to_endline(begin)).c_str());
                     return;
                 }
                 else if (cls::is_token_equal(directive_name, "include", 7))
@@ -493,7 +492,7 @@ namespace glshader::process
                     if (!files::exists(file))
                     {
                         ++processed.error_count;
-                        syntax_error_print(current_file, current_line, strfmt(strings::serr_file_not_found, std::string(include_filename.begin() + 1, include_filename.end() - 1)));
+                        syntax_error_print(current_file, current_line, strfmt(strings::serr_file_not_found, std::string(include_filename.begin() + 1, include_filename.end() - 1).c_str()));
                         return;
                     }
 
@@ -537,6 +536,14 @@ namespace glshader::process
     processed_file preprocess_file(const files::path& file_path, const std::vector<files::path>& include_directories,
         const std::vector<definition>& definitions)
     {
+        if (!exists(file_path))
+        {
+            processed_file processed;
+            ++processed.error_count;
+            syntax_error_print("Preprocessor", 0, strfmt(strings::serr_file_not_found, file_path.string().c_str()));
+            return processed;
+        }
+
         std::ifstream root_file(file_path, std::ios::in);
         std::string contents(std::istreambuf_iterator<char>{root_file}, std::istreambuf_iterator<char>{});
         return preprocess_source(contents, file_path.string(), include_directories, definitions);
