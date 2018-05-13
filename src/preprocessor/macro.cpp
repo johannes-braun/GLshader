@@ -143,7 +143,7 @@ namespace glshader::process::impl::macro
             else
             {
                 line.replace(line.begin() + static_cast<size_t>(begin - line.data()),
-                    line.begin() + static_cast<size_t>(text_ptr + params_length + 2 - line.data()), expanded_macro.begin(),
+                    line.begin() + static_cast<size_t>(text_ptr + params_length + (params_length == 0 ? 0 : 2) - line.data()), expanded_macro.begin(),
                     expanded_macro.end());
             }
 
