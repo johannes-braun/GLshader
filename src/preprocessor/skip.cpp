@@ -53,7 +53,7 @@ namespace glshader::process::impl::skip
     {
         if (strncmp(text_ptr, "//", 2) == 0)
         {
-            while (!classify::is_newline(text_ptr) && classify::is_eof(text_ptr))
+            while (!classify::is_newline(text_ptr) && !classify::is_eof(text_ptr))
                 ++text_ptr;
         }
         else if (strncmp(text_ptr, "/*", 2) == 0)

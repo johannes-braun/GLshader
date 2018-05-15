@@ -158,7 +158,18 @@ namespace glshader::process
     {
         shader_binary result;
         files::path dst = absolute(shader);
-        const auto hash = std::hash<std::string>()(dst.string());
+        auto hash = std::hash<std::string>()(dst.string());
+
+        for (const auto& def : definitions)
+        {
+            hash ^= std::hash<std::string>()(def.info.replacement);
+        }
+
+        for (const auto& inc : includes)
+        {
+            hash ^= std::hash<std::string>()(inc.string());
+        }
+
         if (!files::exists(_cache_dir))
         {
             files::create_directories(_cache_dir);
