@@ -135,7 +135,15 @@ namespace glshader::process::impl::operation
         }
 
         if (opstack.empty())
+        {
+            std::string val(begin, begin + len);
+            for(const auto& c : val)
+            {
+                if (!(c >= '0' && c <= '9'))
+                    return 0;
+            }
             return std::stoi(std::string(begin, begin + len));
+        }
 
         eval_op ox = opstack.front().o;
         auto limit = opstack.begin();

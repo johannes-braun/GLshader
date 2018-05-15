@@ -314,7 +314,8 @@ namespace glshader::process
                         }
 
                         auto line_str = line.str();
-                        auto str = macro::expand(line_str.c_str(), text_ptr, current_file, current_line, processed);
+                        const char* none;
+                        auto str = macro::expand(line_str.c_str(), none, current_file, current_line, processed);
 
                         evaluated = impl::operation::eval(str.data(), static_cast<int>(str.length()), current_file, current_line, processed);
                     }
