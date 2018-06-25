@@ -18,6 +18,7 @@ target_include_directories(glsp PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 set_property(TARGET glsp PROPERTY CXX_STANDARD 17)
+add_library(jbraun::glsp ALIAS glsp)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glsp DESTINATION include FILES_MATCHING PATTERN *.hpp)
 install (TARGETS glsp EXPORT glspTargets
