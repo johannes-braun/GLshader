@@ -27,21 +27,46 @@ namespace glshader::process::impl::macro
         while (cls::is_name_char(text_ptr))
             ++text_ptr;
 
-        const std::string str(begin, text_ptr);
+		const bool has_trailing_brackets = *skip::space(text_ptr) == '(' && *skip::space(skip::space(text_ptr)+1) == ')';
+
+        const std::string str = std::string(begin, text_ptr) + (has_trailing_brackets ? "()" : "");
         return is_defined(str, processed);
     }
 
-    std::string expand_macro(const std::string& name, const char* param_start, const int param_length,
+    std::string expand_macro(std::string name, const char* param_start, int param_length,
         const files::path& current_file, const int current_line, processed_file& processed)
     {
         std::stringstream stream;
-        if (processed.definitions.count(name) == 0)
-            return name;
+		if (processed.definitions.count(name) == 0)
+		{
+			if(param_length == 0)
+			{
+				name = name + "()";
+				param_start = nullptr;
+				if (processed.definitions.count(name) == 0)
+					return name;
+			}
+			else
+			{
+				int param_len = (skip::space(param_start) - param_start);
+				if(param_len == param_length)
+				{
+					name = name + "()";
+					param_start = nullptr;
+					if (processed.definitions.count(name) == 0)
+						return name;
+				}
+				else
+				{
+					return name;
+				}
+			}
+		}
 
         auto info = processed.definitions.at(name);
 
         if (info.parameters.empty())
-            return info.replacement;
+            return info.replacement + (param_start ? std::string(param_start-1, param_length+2) : "");
 
         std::vector<std::string> inputs;
 

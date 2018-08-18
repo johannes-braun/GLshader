@@ -20,9 +20,15 @@ int main()
 
     constexpr const char* source = R"(
 #include "inc.glsl"
+
+#define MY_FUN sin
+#define OTHER_FUN() cos
     
 void main()
-{}
+{
+	int x = int(MY_FUN(177.f));	
+	int y = int(OTHER_FUN( )(12.f));
+}
 )";
 
     const glsp::processed_file src = process_state.preprocess_source(source, "Shader");

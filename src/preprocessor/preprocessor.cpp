@@ -171,7 +171,7 @@ namespace glshader::process
                 {
                     text_ptr = skip::to_next_token(directive_name);
                     const auto name_begin = text_ptr;
-                    while (!cls::is_space(text_ptr) && !cls::is_newline(text_ptr) && *text_ptr != '(')
+                    while (!cls::is_space(text_ptr) && !cls::is_newline(text_ptr) && (*text_ptr != '(' || (*text_ptr == '(' && *skip::space(text_ptr+1)==')')))
                         ++text_ptr;
 
                     if (const auto space_skipped = skip::space(text_ptr);
