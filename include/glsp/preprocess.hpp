@@ -9,7 +9,7 @@
 #include "definition.hpp"
 #include "config.hpp"
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <map>
 #include <set>
 #include <string>
@@ -22,7 +22,7 @@
 
 namespace glshader::process
 {
-    namespace files = std::experimental::filesystem;
+    namespace files = std::filesystem;
 
     /* Refers to in-shader version declaration profile, e.g. #version 450 core/compatibility */
     enum class shader_profile 

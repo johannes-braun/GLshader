@@ -30,87 +30,95 @@ namespace glshader::process
     constexpr uint32_t GL_INFO_LOG_LENGTH           = 0x8B84;
     constexpr uint32_t GL_PROGRAM_BINARY_LENGTH     = 0x8741;
 
-    uint32_t type_from_extension(const files::path& extension)
-    {
-        if (extension == ".vert")
-            return GL_VERTEX_SHADER;
-        if (extension == ".frag")
-            return GL_FRAGMENT_SHADER;
-        if (extension == ".geom")
-            return GL_GEOMETRY_SHADER;
-        if (extension == ".tesc")
-            return GL_TESS_CONTROL_SHADER;
-        if (extension == ".tese")
-            return GL_TESS_EVALUATION_SHADER;
-        if (extension == ".comp")
-            return GL_COMPUTE_SHADER;
-        return 0;
-    }
-
-    compiled_shader load_opengl_binary(const files::path& file, uint32_t type, const std::vector<files::path>& includes, const std::vector<definition>& definitions, const std::string& prefix, const std::string& postfix)
-    {
-        static uint32_t (*glCreateShaderProgramv)(uint32_t, int, const char**)      = nullptr;
-        static void (*glGetProgramiv)(uint32_t, uint32_t, const int*)               = nullptr;
-        static void (*glGetProgramInfoLog)(uint32_t, int, int*, char*)              = nullptr;
-        static void (*glDeleteProgram)(uint32_t)                                    = nullptr;
-        static void (*glGetProgramBinary)(uint32_t, int, int*, uint32_t*, void*)    = nullptr;
-
-        processed_file processed = glsp::preprocess_file(file, includes, definitions);
-
-        // loader should be initialized by glsp::preprocess_file.
-        if (lgl::valid() && !(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))
+    namespace {
+        uint32_t type_from_extension(const files::path& extension)
         {
-            glCreateShaderProgramv  = reinterpret_cast<decltype(glCreateShaderProgramv)>(lgl::load_function("glCreateShaderProgramv"));
-            glGetProgramiv          = reinterpret_cast<decltype(glGetProgramiv)>(lgl::load_function("glGetProgramiv"));
-            glGetProgramInfoLog     = reinterpret_cast<decltype(glGetProgramInfoLog)>(lgl::load_function("glGetProgramInfoLog"));
-            glDeleteProgram         = reinterpret_cast<decltype(glDeleteProgram)>(lgl::load_function("glDeleteProgram"));
-            glGetProgramBinary      = reinterpret_cast<decltype(glGetProgramBinary)>(lgl::load_function("glGetProgramBinary"));
-        }
-        else if(!lgl::valid())
-        {
-            glCreateShaderProgramv  = nullptr;
-            glGetProgramiv          = nullptr;
-            glGetProgramInfoLog     = nullptr;
-            glDeleteProgram         = nullptr;
-            glGetProgramBinary      = nullptr;
+            if (extension == ".vert")
+                return GL_VERTEX_SHADER;
+            if (extension == ".frag")
+                return GL_FRAGMENT_SHADER;
+            if (extension == ".geom")
+                return GL_GEOMETRY_SHADER;
+            if (extension == ".tesc")
+                return GL_TESS_CONTROL_SHADER;
+            if (extension == ".tese")
+                return GL_TESS_EVALUATION_SHADER;
+            if (extension == ".comp")
+                return GL_COMPUTE_SHADER;
+            return 0;
         }
 
-        compiled_shader result;
-
-        if (!(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))
+        compiled_shader load_opengl_binary(const files::path & file, uint32_t type, const std::vector<files::path> & includes, const std::vector<definition> & definitions, const std::string & prefix, const std::string & postfix)
         {
-            result.success = false;
-            syntax_error_print("Function Loader", 0, strings::serr_loader_failed);
-            return result;
-        }
+            static uint32_t(*glCreateShaderProgramv)(uint32_t, int, const char**) = nullptr;
+            static void (*glGetProgramiv)(uint32_t, uint32_t, const int*) = nullptr;
+            static void (*glGetProgramInfoLog)(uint32_t, int, int*, char*) = nullptr;
+            static void (*glDeleteProgram)(uint32_t) = nullptr;
+            static void (*glGetProgramBinary)(uint32_t, int, int*, uint32_t*, void*) = nullptr;
 
-        const char* sources[3] = {
-            prefix.c_str(),
-            processed.contents.c_str(),
-            postfix.c_str()
-        };
+            processed_file processed = glsp::preprocess_file(file, includes, definitions);
 
-        const auto id = glCreateShaderProgramv(type, 3, sources);
-        int success = 0; glGetProgramiv(id, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            int log_length;
-            glGetProgramiv(id, GL_INFO_LOG_LENGTH, &log_length);
-            std::string log(log_length, ' ');
-            glGetProgramInfoLog(id, log_length, &log_length, log.data());
+            // loader should be initialized by glsp::preprocess_file.
+            if (lgl::valid() && !(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))
+            {
+                glCreateShaderProgramv = reinterpret_cast<decltype(glCreateShaderProgramv)>(lgl::load_function("glCreateShaderProgramv"));
+                glGetProgramiv = reinterpret_cast<decltype(glGetProgramiv)>(lgl::load_function("glGetProgramiv"));
+                glGetProgramInfoLog = reinterpret_cast<decltype(glGetProgramInfoLog)>(lgl::load_function("glGetProgramInfoLog"));
+                glDeleteProgram = reinterpret_cast<decltype(glDeleteProgram)>(lgl::load_function("glDeleteProgram"));
+                glGetProgramBinary = reinterpret_cast<decltype(glGetProgramBinary)>(lgl::load_function("glGetProgramBinary"));
+            }
+            else if (!lgl::valid())
+            {
+                glCreateShaderProgramv = nullptr;
+                glGetProgramiv = nullptr;
+                glGetProgramInfoLog = nullptr;
+                glDeleteProgram = nullptr;
+                glGetProgramBinary = nullptr;
+            }
+
+            compiled_shader result;
+
+            if (!(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))
+            {
+                result.success = false;
+                syntax_error_print("Function Loader", 0, strings::serr_loader_failed);
+                return result;
+            }
+
+            const char* sources[3] = {
+                prefix.c_str(),
+                processed.contents.c_str(),
+                postfix.c_str()
+            };
+
+            const auto id = glCreateShaderProgramv(type, 3, sources);
+            int success = 0; glGetProgramiv(id, GL_LINK_STATUS, &success);
+            if (!success)
+            {
+                int log_length;
+                glGetProgramiv(id, GL_INFO_LOG_LENGTH, &log_length);
+                std::string log(log_length, ' ');
+                glGetProgramInfoLog(id, log_length, &log_length, log.data());
+                glDeleteProgram(id);
+                syntax_error_print("Linking", 0, log);
+                result.success = false;
+                return result;
+            }
+
+            int length; glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &length);
+            result.data.resize(length);
+            glGetProgramBinary(id, length, &length, &result.type, result.data.data());
             glDeleteProgram(id);
-            syntax_error_print("Linking", 0, log);
-            result.success = false;
+            result.dependencies.push_back(file);
+            result.dependencies.insert(result.dependencies.end(), processed.dependencies.begin(), processed.dependencies.end());
             return result;
         }
 
-        int length; glGetProgramiv(id, GL_PROGRAM_BINARY_LENGTH, &length);
-        result.data.resize(length);
-        glGetProgramBinary(id, length, &length, &result.type, result.data.data());
-        glDeleteProgram(id);
-        result.dependencies.push_back(file);
-        result.dependencies.insert(result.dependencies.end(), processed.dependencies.begin(), processed.dependencies.end());
-        return result;
+        std::int64_t last_write_time_int64(const files::path& file)
+        {
+            const auto file_time = files::last_write_time(file);
+            return file_time.time_since_epoch().count();
+        }
     }
 
     compiler::compiler(const std::string& extension, const glsp::files::path& cache_dir)
@@ -191,7 +199,7 @@ namespace glshader::process
             {
                 for (int i = 0; i < static_cast<int>(header.dependencies_count); ++i)
                 {
-                    std::time_t last_write{ 0 };
+                    std::int64_t last_write{ 0 };
                     uint32_t slength{ 0 };
 
                     input.read(reinterpret_cast<char*>(&last_write), sizeof(last_write));
@@ -204,7 +212,7 @@ namespace glshader::process
                     if (!files::exists(dep_file))
                         continue;
 
-                    if (std::chrono::system_clock::to_time_t(files::last_write_time(dep_file)) != last_write)
+                    if (last_write_time_int64(dep_file) != last_write)
                     {
                         reload = true;
                         break;
@@ -257,7 +265,7 @@ namespace glshader::process
             std::stringstream buf;
             for (auto dep : dependencies)
             {
-                std::time_t t = std::chrono::system_clock::to_time_t(last_write_time(dep));
+                std::int64_t t = last_write_time_int64(dep);
                 auto str = dep.string();
                 uint32_t len = static_cast<uint32_t>(str.length());
                 buf.write(reinterpret_cast<const char*>(&t), sizeof(t));

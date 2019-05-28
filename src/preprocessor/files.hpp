@@ -1,8 +1,8 @@
 #pragma once
 
-#include <experimental/filesystem>
+//#include <experimental/filesystem>
 
 namespace glshader::process
 {
-    namespace files = std::experimental::filesystem;
+    //namespace files = std::experimental::filesystem;
 }
