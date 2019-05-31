@@ -57,19 +57,48 @@ set_target_properties(glsp  PROPERTIES LINKER_LANGUAGE CXX
 # export targets for easy integration
 # -------------------------------------------------------------
 set_target_properties(glsp PROPERTIES EXPORT_NAME glsp)
+include(GNUInstallDirs)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/glsp)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glsp DESTINATION include FILES_MATCHING PATTERN *.hpp)
-install (TARGETS glsp EXPORT glspTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include)
+# install binaries
+install(TARGETS glsp
+        EXPORT glsp-targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} )
 
-install(EXPORT glspTargets
-    FILE glspTargets.cmake
-    NAMESPACE jbraun::
-    DESTINATION lib/cmake/glsp
-)
+# install header
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/glsp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} )
+
+# generate version file
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+            glspConfigVersion.cmake
+            VERSION 1.0.0
+            COMPATIBILITY AnyNewerVersion )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/glspConfigVersion.cmake DESTINATION ${INSTALL_CONFIGDIR})
+
+# install the cmake config
+# this does only work as long as this project has no dependencies (find_package calls)
+# see https://cliutils.gitlab.io/modern-cmake/chapters/install/installing.html
+install(EXPORT glsp-targets
+        FILE glspConfig.cmake
+        NAMESPACE glsp::
+        DESTINATION ${INSTALL_CONFIGDIR} )
+
+
+# --------------------------------------------------------
+# export to build tree to allow instant use
+# --------------------------------------------------------
+
+option(EXPORT_BUILD_TREE "Enable, to export the targets from the build tree to your cmake registry. Useful for development." OFF)
+
+if(EXPORT_BUILD_TREE)
+    # generate config.cmake inside buid tree
+    export(EXPORT glsp-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/glspConfig.cmake NAMESPACE mpUtils::)
+    # register package in users package registry
+    export(PACKAGE glsp)
+endif()
 
 
 # -------------------------------------------------------------
