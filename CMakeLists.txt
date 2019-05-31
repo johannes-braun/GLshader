@@ -14,7 +14,7 @@ file(GLOB_RECURSE SRC_CPP "${PROJECT_SOURCE_DIR}/src/*.cpp")
 add_library(glsp ${SRC_CPP})
 target_link_libraries(glsp ${LIBRARIES})
 set_target_properties(glsp PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(glsp PUBLIC 
+target_include_directories(glsp PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 set_property(TARGET glsp PROPERTY CXX_STANDARD 17)
@@ -23,7 +23,7 @@ add_library(jbraun::glsp ALIAS glsp)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glsp DESTINATION include FILES_MATCHING PATTERN *.hpp)
 install (TARGETS glsp EXPORT glspTargets
     ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib 
+    LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
     INCLUDES DESTINATION include)
 
@@ -33,6 +33,7 @@ install(EXPORT glspTargets
     DESTINATION lib/cmake/glsp
 )
 
+# build examples if the user wants that
 option(GLSP_BUILD_EXECUTABLE OFF "Builds the example executable(s).")
 
 if(GLSP_BUILD_EXECUTABLE)
