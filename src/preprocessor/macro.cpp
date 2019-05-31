@@ -49,7 +49,7 @@ namespace glshader::process::impl::macro
 			}
 			else
 			{
-				int param_len = (skip::space(param_start) - param_start);
+				int param_len = static_cast<int>(skip::space(param_start) - param_start);
 				if(param_len == param_length)
 				{
 					name = name + "()";
