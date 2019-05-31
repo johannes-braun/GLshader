@@ -1,23 +1,60 @@
 cmake_minimum_required(VERSION 3.9)
 project(GLShader)
 
-list(APPEND INCLUDES ${PROJECT_SOURCE_DIR}/include)
+# -------------------------------------------------------------
+# create target
+# -------------------------------------------------------------
+
+add_library(glsp    "src/definition.cpp"
+                    "src/compiler/compiler.cpp"
+                    "src/compress/huffman.cpp"
+                    "src/opengl/loader.cpp"
+                    "src/preprocessor/classify.cpp"
+                    "src/preprocessor/control.cpp"
+                    "src/preprocessor/eval.cpp"
+                    "src/preprocessor/extensions.cpp"
+                    "src/preprocessor/macro.cpp"
+                    "src/preprocessor/preprocessor.cpp"
+                    "src/preprocessor/skip.cpp" )
+
+
+# -------------------------------------------------------------
+# set include dirs
+# -------------------------------------------------------------
+
+target_include_directories( glsp
+        PUBLIC
+            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
+        PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/src )
+
+
+# -------------------------------------------------------------
+# link libraries
+# -------------------------------------------------------------
 
 if (MSVC)
-    list(APPEND LIBRARIES opengl32)
+    target_link_libraries(glsp PUBLIC opengl32)
     #set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
 elseif (UNIX)
-    list(APPEND LIBRARIES dl stdc++fs)
+    target_link_libraries(glsp PUBLIC dl stdc++fs)
 endif()
 
-file(GLOB_RECURSE SRC_CPP "${PROJECT_SOURCE_DIR}/src/*.cpp")
-add_library(glsp ${SRC_CPP})
-target_link_libraries(glsp ${LIBRARIES})
-set_target_properties(glsp PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(glsp PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
-set_property(TARGET glsp PROPERTY CXX_STANDARD 17)
+
+# -------------------------------------------------------------
+# set properties
+# -------------------------------------------------------------
+
+set_target_properties(glsp  PROPERTIES LINKER_LANGUAGE CXX
+                            CXX_STANDARD 17
+                            CXX_STANDARD_REQUIRED YES)
+
+
+# -------------------------------------------------------------
+# export targets for easy integration
+# -------------------------------------------------------------
+
 add_library(jbraun::glsp ALIAS glsp)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glsp DESTINATION include FILES_MATCHING PATTERN *.hpp)
@@ -33,7 +70,11 @@ install(EXPORT glspTargets
     DESTINATION lib/cmake/glsp
 )
 
-# build examples if the user wants that
+
+# -------------------------------------------------------------
+# compile examples if user wants them
+# -------------------------------------------------------------
+
 option(GLSP_BUILD_EXECUTABLE OFF "Builds the example executable(s).")
 
 if(GLSP_BUILD_EXECUTABLE)
