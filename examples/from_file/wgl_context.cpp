@@ -3,6 +3,7 @@
 #if defined(WIN32)
 #include <Windows.h>
 #include <cassert>
+#include <stdexcept>
 
 namespace gl
 {
