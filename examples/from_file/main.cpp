@@ -1,5 +1,5 @@
 #include <iostream>
-#include <context.hpp>
+#include "context.hpp"
 #include <glsp/preprocess.hpp>
 
 int main()
@@ -23,10 +23,10 @@ int main()
 
 #define MY_FUN sin
 #define OTHER_FUN() cos
-    
+
 void main()
 {
-	int x = int(MY_FUN(177.f));	
+	int x = int(MY_FUN(177.f));
 	int y = int(OTHER_FUN( )(12.f));
 }
 )";

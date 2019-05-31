@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-project(GLShader)
+project(glsp)
 
 # -------------------------------------------------------------
 # create target
@@ -17,6 +17,8 @@ add_library(glsp    "src/definition.cpp"
                     "src/preprocessor/preprocessor.cpp"
                     "src/preprocessor/skip.cpp" )
 
+# add an alias so that library can be used inside the build tree, e.g. when testing
+add_library(glsp::glsp ALIAS glsp)
 
 # -------------------------------------------------------------
 # set include dirs
@@ -54,8 +56,7 @@ set_target_properties(glsp  PROPERTIES LINKER_LANGUAGE CXX
 # -------------------------------------------------------------
 # export targets for easy integration
 # -------------------------------------------------------------
-
-add_library(jbraun::glsp ALIAS glsp)
+set_target_properties(glsp PROPERTIES EXPORT_NAME glsp)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glsp DESTINATION include FILES_MATCHING PATTERN *.hpp)
 install (TARGETS glsp EXPORT glspTargets
@@ -82,15 +83,12 @@ if(GLSP_BUILD_EXECUTABLE)
     message("[GLSP] Enabled Executables. Adding...")
     foreach(example ${children})
         if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/${example})
-            file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/examples/${example}/*.cpp)
-            add_executable(${example} ${SOURCES})
-            target_link_libraries(${example} glsp)
-            if(MSVC)
-                target_link_libraries(${example} opengl32)
+            if (NOT ${example} MATCHES "\\..*")
+                if(EXISTS ${CMAKE_SOURCE_DIR}/examples/${example}/CMakeLists.txt)
+                    message("\t\t \"${example}\"")
+                    add_subdirectory(${CMAKE_SOURCE_DIR}/examples/${example})
+                endif()
             endif()
-            set_target_properties(${example} PROPERTIES LINKER_LANGUAGE CXX RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/examples/${example}" CXX_STANDARD 17)
-            target_include_directories(${example} PUBLIC ${INCLUDES})
-            target_include_directories(${example} PUBLIC ${PROJECT_SOURCE_DIR}/examples/${example})
         endif()
     endforeach()
 endif()
