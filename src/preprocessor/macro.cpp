@@ -7,6 +7,7 @@
 #include "../strings.hpp"
 
 #include <sstream>
+#include <cstring>
 
 namespace glshader::process::impl::macro
 {
