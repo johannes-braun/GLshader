@@ -1,11 +1,10 @@
 #pragma once
 
-#include "files.hpp"
 #include <glsp/preprocess.hpp>
 
 namespace glshader::process::impl::operation
 {
-    /*** 
+    /***
     Takes a const char* substring with a given length and tries to evaluate it's value.
     Evaluates arithmetical, logical and comparison operations on integral values.
     ***/

@@ -1,7 +1,6 @@
 #include <glsp/compiler.hpp>
 
 #include <glsp/huffman.hpp>
-#include "../preprocessor/files.hpp"
 #include "../opengl/loader.hpp"
 #include "../strings.hpp"
 #include <cassert>
@@ -161,7 +160,7 @@ namespace glshader::process
 
         uint32_t data_tag;              // DATA
     };
-    
+
     shader_binary compiler::compile(const glsp::files::path& shader, format format, bool force_reload, std::vector<glsp::files::path> includes, std::vector<glsp::definition> definitions)
     {
         shader_binary result;
