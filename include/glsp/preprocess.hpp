@@ -29,8 +29,6 @@ namespace glshader::process
         namespace files = std::filesystem;
     #endif
 
-    std::function<void(const std::string &)> ERR_OUTPUT = [](const std::string& x){ std::cerr << "[glsp error] " << (x) << std::endl; };
-
     /* Refers to in-shader version declaration profile, e.g. #version 450 core/compatibility */
     enum class shader_profile
     {

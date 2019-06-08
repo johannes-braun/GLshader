@@ -28,6 +28,8 @@ namespace glshader::process
     namespace ext = impl::ext;
     namespace lgl = impl::loader;
 
+    std::function<void(const std::string &)> ERR_OUTPUT = [](const std::string& x){ std::cerr << "[glsp error] " << (x) << std::endl; };
+
     void process_impl(const files::path& file_path, const std::string& contents, const std::vector<files::path>& include_directories,
         processed_file& processed, std::set<files::path>& unique_includes,
         std::stringstream& result)
