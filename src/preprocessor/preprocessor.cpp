@@ -550,15 +550,15 @@ namespace glshader::process
         return preprocess_source(contents, file_path.string(), include_directories, definitions);
     }
 
-    processed_file preprocess_source(const std::string& source, const std::string& name, 
+    processed_file preprocess_source(const std::string& source, const std::string& name,
         const std::vector<files::path>& include_directories, const std::vector<definition>& definitions)
     {
         constexpr uint32_t NUM_EXTENSIONS    = 0x821D;
         constexpr uint32_t EXTENSIONS        = 0x1F03;
-        static const void (*glGetIntegerv)(uint32_t, int*) = nullptr;
-        static const uint8_t* (*glGetStringi)(uint32_t, int) = nullptr;
+        thread_local const void (*glGetIntegerv)(uint32_t, int*) = nullptr;
+        thread_local const uint8_t* (*glGetStringi)(uint32_t, int) = nullptr;
 
-        static bool gl_initialized = false;
+        thread_local bool gl_initialized = false;
         if (!gl_initialized || !lgl::valid())
         {
             lgl::reload();

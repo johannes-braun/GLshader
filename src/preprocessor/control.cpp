@@ -9,7 +9,7 @@ namespace glshader::process::impl::control
     std::string line_directive(const files::path& file, int line)
     {
 
-        static struct GetStringFunction
+        thread_local struct GetStringFunction
         {
         public:
             GetStringFunction() : glGetStringFunc(nullptr), ns('\0')

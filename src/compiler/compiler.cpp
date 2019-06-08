@@ -49,11 +49,11 @@ namespace glshader::process
 
         compiled_shader load_opengl_binary(const files::path & file, uint32_t type, const std::vector<files::path> & includes, const std::vector<definition> & definitions, const std::string & prefix, const std::string & postfix)
         {
-            static uint32_t(*glCreateShaderProgramv)(uint32_t, int, const char**) = nullptr;
-            static void (*glGetProgramiv)(uint32_t, uint32_t, const int*) = nullptr;
-            static void (*glGetProgramInfoLog)(uint32_t, int, int*, char*) = nullptr;
-            static void (*glDeleteProgram)(uint32_t) = nullptr;
-            static void (*glGetProgramBinary)(uint32_t, int, int*, uint32_t*, void*) = nullptr;
+            thread_local uint32_t(*glCreateShaderProgramv)(uint32_t, int, const char**) = nullptr;
+            thread_local void (*glGetProgramiv)(uint32_t, uint32_t, const int*) = nullptr;
+            thread_local void (*glGetProgramInfoLog)(uint32_t, int, int*, char*) = nullptr;
+            thread_local void (*glDeleteProgram)(uint32_t) = nullptr;
+            thread_local void (*glGetProgramBinary)(uint32_t, int, int*, uint32_t*, void*) = nullptr;
 
             processed_file processed = glsp::preprocess_file(file, includes, definitions);
 

@@ -46,7 +46,7 @@ namespace glshader::process::impl::loader
             return ctx && ctx == get_ctx_fun();
         }
 
-        ~function_loader() 
+        ~function_loader()
         {
 #ifdef _WIN32
             FreeLibrary(HMODULE(hnd));
@@ -78,7 +78,7 @@ namespace glshader::process::impl::loader
         void* (*get_ctx_fun)() = nullptr;
 
 #ifdef __APPLE__
-        constexpr static std::array<const char *, 4> libs ={
+        constexpr thread_local std::array<const char *, 4> libs ={
             "../Frameworks/OpenGL.framework/OpenGL",
             "/Library/Frameworks/OpenGL.framework/OpenGL",
             "/System/Library/Frameworks/OpenGL.framework/OpenGL",
@@ -101,11 +101,11 @@ namespace glshader::process::impl::loader
 
     function_loader& get_loader()
     {
-        static function_loader l;
+        thread_local function_loader l;
         return l;
     }
 
-    bool valid() noexcept 
+    bool valid() noexcept
     {
         return get_loader().valid();
     }
