@@ -8,12 +8,17 @@
 
 #pragma once
 
-// CUSTOM LOGGING:
-// If you want to use your own logger for error logs, you can define ERR_OUTPUT(x) with x being the logged string.
-// Example for a custom stream-style logger:
-// #define ERR_OUTPUT(x) my_logger("GLShader") << (x)
-
 // NAMESPACE:
 namespace glshader::process {}
 // Shorten base namespace. You can use your own namespace if you wish.
 namespace glsp = glshader::process;
+
+#include <functional>
+#include <string>
+#include <iostream>
+
+// LOGGING
+// to use a custom logger just set glsp::ERR_OUTPUT to another function
+namespace glshader::process {
+    extern std::function<void(const std::string &)> ERR_OUTPUT;
+}
