@@ -19,8 +19,8 @@
 #include <string>
 #include <vector>
 
-namespace glshader::process
-{
+namespace glshader {
+namespace process {
 
     #if defined(__GNUC__) && __GNUC__ < 8
     #include <experimental/filesystem>
@@ -111,4 +111,4 @@ namespace glshader::process
         std::vector<files::path> _include_directories;
         std::vector<definition> _definitions;
     };
-}
+}}

@@ -12,8 +12,9 @@
 #include <string>
 #include <vector>
 
-namespace glshader::process
-{
+namespace glshader {
+namespace process {
+
     /* Holds all the needed information for resolving a definition. */
     struct definition_info
     {
@@ -51,7 +52,7 @@ namespace glshader::process
         /* Macro info like replacement and parameters. */
         definition_info info;
     };
-}
+}}
 
 /* Calls and returns glsp::definition::from_format({def, def+len}). */
 glsp::definition operator"" _gdef(const char* def, size_t len);
