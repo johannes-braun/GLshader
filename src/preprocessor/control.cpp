@@ -12,14 +12,21 @@ namespace glshader::process::impl::control
         static struct GetStringFunction
         {
         public:
-            GetStringFunction() : glGetStringFunc(nullptr)
+            GetStringFunction() : glGetStringFunc(nullptr), ns('\0')
             {
                 namespace lgl = impl::loader;
                 if (lgl::valid())
                     glGetStringFunc = reinterpret_cast<decltype(glGetStringFunc)>(lgl::load_function("glGetString"));
             }
-            const char *operator()(uint32_t param) {return glGetStringFunc(param);}
+            const char *operator()(uint32_t param)
+            {
+                if(glGetStringFunc != nullptr)
+                    return glGetStringFunc(param);
+                else
+                    return &ns;
+            }
         private:
+            const char ns;
             const char * (*glGetStringFunc)(uint32_t );
 
         } glGetString;
