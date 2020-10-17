@@ -19,13 +19,8 @@
 #include <string>
 #include <vector>
 
-#ifndef ERR_OUTPUT
-#include <iostream>
-#define ERR_OUTPUT(x) std::cerr << (x) << '\n'
-#endif
-
-namespace glshader::process
-{
+namespace glshader {
+namespace process {
 
     #if defined(__GNUC__) && __GNUC__ < 8
     #include <experimental/filesystem>
@@ -33,8 +28,6 @@ namespace glshader::process
     #else
         namespace files = std::filesystem;
     #endif
-
-
 
     /* Refers to in-shader version declaration profile, e.g. #version 450 core/compatibility */
     enum class shader_profile
@@ -118,5 +111,4 @@ namespace glshader::process
         std::vector<files::path> _include_directories;
         std::vector<definition> _definitions;
     };
-}
-#undef ERR_OUTPUT
+}}

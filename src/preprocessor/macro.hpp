@@ -1,6 +1,5 @@
 #pragma once
 
-#include "files.hpp"
 #include <glsp/glsp.hpp>
 
 namespace glshader::process::impl::macro
