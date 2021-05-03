@@ -55,7 +55,10 @@ namespace glshader::process
             thread_local void (*glDeleteProgram)(uint32_t) = nullptr;
             thread_local void (*glGetProgramBinary)(uint32_t, int, int*, uint32_t*, void*) = nullptr;
 
-            processed_file processed = glsp::preprocess_file(file, includes, definitions);
+            preprocess_file_info info{
+              includes, definitions, false, file
+            };
+            processed_file processed = glsp::preprocess_file(info);
 
             // loader should be initialized by glsp::preprocess_file.
             if (lgl::valid() && !(glCreateShaderProgramv && glGetProgramiv && glGetProgramInfoLog && glDeleteProgram && glGetProgramBinary))

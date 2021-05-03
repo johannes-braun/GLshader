@@ -12,7 +12,10 @@ int main()
     });
 
     glsp::state process_state;
-    const glsp::processed_file file = process_state.preprocess_file("test.vert");
+    glsp::preprocess_file_info info;
+    info.file_path = "C:\\Users\\johan\\Documents\\Projekte\\myrt\\ext\\glsp\\examples\\from_file\\test.vert";
+    info.include_directories = { "C:\\Users\\johan\\Documents\\Projekte\\myrt\\ext\\glsp\\examples\\from_file" };
+     const glsp::processed_file file = process_state.preprocess_file(info);
     if(!file)
     {
         std::cout << "Failed to process file.\n";
@@ -32,6 +35,36 @@ void main()
 )";
 
     const glsp::processed_file src = process_state.preprocess_source(source, "Shader");
+
+    // Check definition with pp-macros in it...
+
+    glsp::definition def{ "PP_TEST", R"(
+#include "inc.glsl"
+
+#define IN_DEF_MACRO(x) sin((x))
+
+float calc_sin(float x) {
+  return IN_DEF_MACRO(x);
+}
+
+#undef IN_DEF_MACRO
+
+float calc_sin_notworking(float x) {
+  return IN_DEF_MACRO(x);
+}
+)" };
+
+    constexpr const char* sourcet = R"(
+PP_TEST
+
+void main()
+{
+}
+)";
+
+    const glsp::processed_file srct = process_state.preprocess_source(sourcet, "Shader", {"C:\\Users\\johan\\Documents\\Projekte\\myrt\\ext\\glsp\\examples\\from_file"}, { def });
+
+
 
     std::cin.ignore();
     return 0;

@@ -1,6 +1,6 @@
 #include "context.hpp"
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <Windows.h>
 #include <cassert>
 #include <stdexcept>
