@@ -8,7 +8,6 @@ namespace glshader::process::impl::control
 
     std::string line_directive(const files::path& file, int line)
     {
-
         thread_local struct GetStringFunction
         {
         public:
@@ -31,11 +30,19 @@ namespace glshader::process::impl::control
 
         } glGetString;
 
+        std::string fn = file.filename().string();
+        for (auto& c : fn)
+          if (c == '\"')
+            c = ' ';
         std::string s = glGetString(GL_VENDOR);
-        if(s.find("NVIDIA") != std::string::npos)
-            return "\n#line " + std::to_string(line) + " \"" + file.filename().string() + "\"\n";
-        else
+
+        auto const directive = [&] {
+          if (s.find("NVIDIA") != std::string::npos)
+            return "\n#line " + std::to_string(line) + " \"" + fn + "\"\n";
+          else
             return "\n#line " + std::to_string(line) + "\n";
+        }();
+        return directive;
     }
 
     void increment_line(int& current_line, processed_file& processed)

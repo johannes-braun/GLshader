@@ -65,9 +65,11 @@ namespace glshader::process
             {
               if (expand_in_macros) {
                 std::stringstream tempstream;
+                tempstream << '\n';
                 tempstream << ctrl::line_directive(current_file, current_line);
                 tempstream << macro::expand(text_ptr, text_ptr, current_file, current_line, processed);
                 tempstream << ctrl::line_directive(current_file, current_line + 1);
+                tempstream << '\n';
                 process_impl(file_path, tempstream.str(), include_directories, processed, unique_includes, result, expand_in_macros);
               }
               else
@@ -450,7 +452,7 @@ namespace glshader::process
                         {
                             current_file = files::path(std::string(text_ptr + 1, file_name_end));
                             processed.definitions["__FILE__"] = current_file.string();
-                            result << "\"" << current_file << "\"\n";
+                            result << '\"' << current_file.string() << '\"' << '\n';
                         }
                         else
                         {
@@ -459,7 +461,7 @@ namespace glshader::process
 
                             current_file = files::path(std::string(text_ptr + 1, file_name_end));
                             processed.definitions["__FILE__"] = current_file.string();
-                            result << "\"" << current_file << "\"\n";
+                            result << '\"' << current_file.string() << '\"' << '\n';
                         }
                     }
                     text_ptr = skip::to_endline(text_ptr);
