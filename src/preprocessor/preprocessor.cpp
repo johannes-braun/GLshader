@@ -30,6 +30,55 @@ namespace glshader::process
 
     std::function<void(const std::string &)> ERR_OUTPUT = [](const std::string& x){ std::cerr << "[glsp error] " << (x) << std::endl; };
 
+    inline std::string minify(std::string const& original) {
+      std::string minified;
+      //preallocate a bit more than needed.
+      minified.reserve(original.size());
+
+      enum class state {
+        normal,
+        space,
+        preprocessor
+      } current_state = state::normal;
+
+      bool alphanumeric = false;
+
+      for (char c : original) {
+        switch (current_state) {
+        case state::space:
+          if (!(cls::is_space(&c) || cls::is_newline(&c)) && !(c == '\n' || c == '\r'))
+          {
+            current_state = state::normal;
+
+            if (alphanumeric && !cls::is_operator(&c))
+              minified.push_back(' ');
+          }
+        case state::normal:
+          if (cls::is_space(&c) || cls::is_newline(&c))
+            current_state = state::space;
+          else if (c == '#') {
+            if (!minified.empty() && !cls::is_newline(&minified.back()))
+              minified.push_back('\n');
+            current_state = state::preprocessor;
+            minified.push_back(c);
+          }
+          else {
+            alphanumeric = !cls::is_operator(&c);
+            minified.push_back(c);
+          }
+          break;
+
+        case state::preprocessor:
+          if (c == '\n' || c == '\r')
+            current_state = state::space;
+          minified.push_back(c);
+          break;
+        }
+      }
+      minified.shrink_to_fit();
+      return minified;
+    }
+
     void process_impl(const files::path& file_path, const std::string& contents, const std::vector<files::path>& include_directories,
         processed_file& processed, std::set<files::path>& unique_includes,
         std::stringstream& result, bool expand_in_macros)
@@ -66,17 +115,17 @@ namespace glshader::process
               if (expand_in_macros) {
                 std::stringstream tempstream;
                 tempstream << '\n';
-                tempstream << ctrl::line_directive(current_file, current_line);
+                tempstream << ctrl::line_directive(current_file, current_line, processed);
                 tempstream << macro::expand(text_ptr, text_ptr, current_file, current_line, processed);
-                tempstream << ctrl::line_directive(current_file, current_line + 1);
+                tempstream << ctrl::line_directive(current_file, current_line + 1, processed);
                 tempstream << '\n';
                 process_impl(file_path, tempstream.str(), include_directories, processed, unique_includes, result, expand_in_macros);
               }
               else
               {
-                result << ctrl::line_directive(current_file, current_line);
+                result << ctrl::line_directive(current_file, current_line, processed);
                 result << macro::expand(text_ptr, text_ptr, current_file, current_line, processed);
-                result << ctrl::line_directive(current_file, current_line + 1);
+                result << ctrl::line_directive(current_file, current_line + 1, processed);
               }
               ++text_ptr;
             }
@@ -121,7 +170,7 @@ namespace glshader::process
                     while (!cls::is_newline(text_ptr))
                         result << *text_ptr++;
 
-                    result << ctrl::line_directive(current_file, current_line);
+                    result << ctrl::line_directive(current_file, current_line, processed);
                 }
                 else if (cls::is_token_equal(directive_name, "extension", 9))
                 {
@@ -264,7 +313,7 @@ namespace glshader::process
                         text_ptr = value_end;
                     }
 
-                    result << ctrl::line_directive(current_file, current_line);
+                    result << ctrl::line_directive(current_file, current_line, processed);
                 }
                 else if (cls::is_token_equal(directive_name, "undef", 5))
                 {
@@ -430,7 +479,7 @@ namespace glshader::process
                     accept_else_directive.pop();
                     text_ptr = skip::to_endline(directive_name);
                     --defines_nesting;
-                    result << ctrl::line_directive(current_file, current_line);
+                    result << ctrl::line_directive(current_file, current_line, processed);
                 }
                 else if (cls::is_token_equal(directive_name, "line", 4))
                 {
@@ -513,8 +562,8 @@ namespace glshader::process
 
                     if (unique_includes.count(file) == 0)
                     {
-                        result << ctrl::line_directive(current_file, current_line);
-                        result << ctrl::line_directive(file, 1);
+                        result << ctrl::line_directive(current_file, current_line, processed);
+                        result << ctrl::line_directive(file, 1, processed);
                         processed.dependencies.emplace(file);
 
                         std::ifstream root_file(file, std::ios::in);
@@ -523,7 +572,7 @@ namespace glshader::process
                     }
                     text_ptr = skip::to_endline(include_begin);
 
-                    result << ctrl::line_directive(current_file, current_line);
+                    result << ctrl::line_directive(current_file, current_line, processed);
                 }
                 else
                 {
@@ -551,13 +600,13 @@ namespace glshader::process
     processed_file preprocess_file(const files::path& file_path, const std::vector<files::path>& include_directories,
         const std::vector<definition>& definitions, bool expand_in_macros)
     {
-      return preprocess_file(preprocess_file_info{ std::move(include_directories), std::move(definitions), false, file_path });
+      return preprocess_file(preprocess_file_info{ std::move(include_directories), std::move(definitions), false, false, file_path });
     }
 
     processed_file preprocess_source(const std::string& source, const std::string& name,
         const std::vector<files::path>& include_directories, const std::vector<definition>& definitions, bool expand_in_macros)
     {
-      return preprocess_source(preprocess_source_info{ include_directories, definitions, false, source, name });
+      return preprocess_source(preprocess_source_info{ include_directories, definitions, false, false, source, name });
     }
 
     processed_file preprocess_file(preprocess_file_info const& info)
@@ -604,6 +653,7 @@ namespace glshader::process
       processed_file processed;
       processed.version = -1;
       processed.file_path = info.name;
+      processed.minified = info.do_minify;
 
       for (auto&& definition : info.definitions)
         processed.definitions[definition.name] = definition.info;
@@ -614,6 +664,12 @@ namespace glshader::process
       process_impl(info.name, info.source, info.include_directories, processed, unique_includes, result, info.expand_in_macros);
 
       processed.contents = result.str();
+
+      if (info.do_minify)
+      {
+        processed.contents = minify(processed.contents);
+      }
+
       return processed;
     }
 
@@ -641,12 +697,12 @@ namespace glshader::process
 
     processed_file state::preprocess_file(const files::path& file_path, std::vector<files::path> include_directories, std::vector<definition> definitions)
     {
-      return preprocess_file(preprocess_file_info{ std::move(include_directories), std::move(definitions), false, file_path });
+      return preprocess_file(preprocess_file_info{ std::move(include_directories), std::move(definitions), false, false, file_path });
     }
 
     processed_file state::preprocess_source(const std::string& source, const std::string& name, std::vector<files::path> include_directories, std::vector<definition> definitions)
     {
-      return preprocess_source(preprocess_source_info{ std::move(include_directories), std::move(definitions), false, source, name });
+      return preprocess_source(preprocess_source_info{ std::move(include_directories), std::move(definitions), false, false, source, name });
     }
 
     processed_file state::preprocess_file(preprocess_file_info info)

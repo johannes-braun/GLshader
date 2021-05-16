@@ -55,6 +55,7 @@ namespace process {
         std::map<std::string, definition_info> definitions; /* All definitions which have been defined in the shader without being undefined afterwards. */
         std::string contents;                               /* The fully processed shader code string. */
         int error_count = 0;                                /* The number of syntax errors that occurred while preprocessing. */
+        bool minified = false;                              /* Generate the smallest possible code footprint. */
 
         bool valid() const noexcept;                        /* Returns true when the file has been processed successfully, false when there were syntax errors. */
         operator bool() const noexcept;                     /* Returns true when the file has been processed successfully, false when there were syntax errors. */
@@ -63,7 +64,8 @@ namespace process {
     struct preprocess_info_base {
       std::vector<files::path> include_directories = {}; // A list of include directories to search in when parsing includes.
       std::vector<definition> definitions = {};          // A list of predefined definitions. 
-      bool expand_in_macros = false;                            // Recursively expand preprocessor statements if passed as a definition.
+      bool expand_in_macros = false;                     // Recursively expand preprocessor statements if passed as a definition.
+      bool do_minify = false;                            // Generate the shortest possible code and leave out #line directives.
     };
 
     struct preprocess_file_info : preprocess_info_base {

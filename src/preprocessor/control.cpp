@@ -6,8 +6,11 @@ namespace glshader::process::impl::control
 {
     constexpr uint32_t GL_VENDOR = 0x1F00;
 
-    std::string line_directive(const files::path& file, int line)
+    std::string line_directive(const files::path& file, int line, processed_file& processed)
     {
+      if (processed.minified)
+        return "";
+
         thread_local struct GetStringFunction
         {
         public:

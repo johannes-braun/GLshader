@@ -67,7 +67,7 @@ namespace glshader::process::impl::skip
 
             text_ptr += 2;
             if (processed.version != -1)
-                result << control::line_directive(file, line);
+                result << control::line_directive(file, line, processed);
         }
         return text_ptr;
     }

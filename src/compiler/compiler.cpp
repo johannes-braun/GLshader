@@ -56,7 +56,7 @@ namespace glshader::process
             thread_local void (*glGetProgramBinary)(uint32_t, int, int*, uint32_t*, void*) = nullptr;
 
             preprocess_file_info info{
-              includes, definitions, false, file
+              includes, definitions, false, false, file
             };
             processed_file processed = glsp::preprocess_file(info);
 

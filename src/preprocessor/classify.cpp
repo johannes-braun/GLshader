@@ -31,6 +31,37 @@ namespace glshader::process::impl::classify
         return isalnum(*c) || *c=='_';
     }
 
+    bool is_operator(const char* c)
+    {
+        switch (*c) {
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '&':
+        case '|':
+        case '^':
+        case '(':
+        case ')':
+        case '[':
+        case ']':
+        case '=':
+        case '{':
+        case '}':
+        case '~':
+        case '!':
+        case '<':
+        case '>':
+        case '.':
+        case ',':
+        case ';':
+        case '?':
+        case ':':
+          return true;
+        }
+        return false;
+    }
+
     bool is_directive(const char* c, bool check_before)
     {
         return *c=='#' && (!check_before || is_newline(skip::space_rev(c - 1)));
