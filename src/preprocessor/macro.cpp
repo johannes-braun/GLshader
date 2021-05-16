@@ -184,7 +184,7 @@ namespace glshader::process::impl::macro
           } while (bracket_stack && !cls::is_eof(end_params));
         }
         params_start = *begin_params == '(' ? begin_params + 1 : nullptr;
-        params_length = *begin_params == '(' ? end_params - params_start : 0;
+        params_length = static_cast<int>(*begin_params == '(' ? end_params - params_start : 0);
       }
 
       std::string expanded_macro = expand_macro({ begin, text_ptr }, params_start, static_cast<int>(params_length),
